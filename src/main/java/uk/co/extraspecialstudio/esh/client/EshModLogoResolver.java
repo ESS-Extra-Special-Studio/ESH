@@ -116,6 +116,8 @@ public final class EshModLogoResolver {
             modId + ":textures/logo.png",
             modId + ":textures/gui/logo.png",
             modId + ":textures/gui/icon.png",
+            modId + ":textures/gui/icons/" + modId + ".png",
+            modId + ":textures/gui/icons/icon.png",
             modId + ":icon.png",
             modId + ":textures/icon.png",
             modId + ":pack.png"
