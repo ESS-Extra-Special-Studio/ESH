@@ -39,12 +39,10 @@ public final class EshWindowRegistry {
     }
 
     public void register(EshWindowSpec spec) {
-        if (spec.section() == EshSection.MODS && isStudioOwned(spec)) {
+        if (spec.section() == EshSection.MODS && isStackCore(spec)) {
             EshMod.LOGGER.warn(
-                "Rejected ESH Other Mods registration for studio mod {} (author={}). "
-                    + "Other Mods is third-party only — use ESS / PantheonAPI / Utility (Pantheon family opens via Pantheon Hub dock).",
-                spec.registryKey(),
-                spec.author()
+                "Rejected ESH Mods registration for stack core {} — use ESS / Utility.",
+                spec.registryKey()
             );
             return;
         }
@@ -55,38 +53,21 @@ public final class EshWindowRegistry {
         } else {
             windows.register(key, spec);
         }
-        EshMod.LOGGER.info("Registered ESH window {} [{}] author={}", key, spec.section(), spec.author());
+        EshMod.LOGGER.info("Registered ESH window {} [{}] author={} enabled={}",
+            key, spec.section(), spec.author(), spec.enabled());
     }
 
-    /**
-     * Studio-owned mods never appear under MODS — that section is for other authors' menus.
-     */
-    private static boolean isStudioOwned(EshWindowSpec spec) {
-        String author = spec.author() == null ? "" : spec.author().trim().toLowerCase(Locale.ROOT);
-        if (author.equals("extra special studio") || author.equals("extraspecialstudio")) {
-            return true;
-        }
+    /** Stack cores must not register under Mods. */
+    private static boolean isStackCore(EshWindowSpec spec) {
         String modId = spec.modId() == null ? "" : spec.modId().trim().toLowerCase(Locale.ROOT);
-        return STUDIO_MOD_IDS.contains(modId);
+        return STACK_CORE_MOD_IDS.contains(modId);
     }
 
-    private static final java.util.Set<String> STUDIO_MOD_IDS = java.util.Set.of(
+    private static final java.util.Set<String> STACK_CORE_MOD_IDS = java.util.Set.of(
         "extraspecialhub",
         "extraspecialcore",
         "extraspecialgui",
-        "whatlib",
-        "extraspeciallib",
-        "pantheonapi",
-        "hermes",
-        "aegis_accord",
-        "calmtheleaks",
-        "calml_the_leaks_ctl",
-        "death_detangler",
-        "lootr_liason",
-        "deeprealmslib",
-        "apocalyptic_world_engine",
-        "dead_air",
-        "radiotowers"
+        "extraspeciallib"
     );
 
     public EshWindowSpec find(String registryKey) {
@@ -109,11 +90,11 @@ public final class EshWindowRegistry {
 
     public List<EscHubGroup> groupsForSection(EshSection section, EshModsListMode mode, String search) {
         List<EshWindowSpec> specs = filterSearch(forSection(section), search);
-        // Other Mods + Utility: Author / Title / Group filter modes.
+        // Mods + Utility: Author / Title / Group filter modes.
         if (section == EshSection.MODS || section == EshSection.UTILITY) {
             return groupMods(specs, mode == null ? EshModsListMode.BY_AUTHOR : mode, section);
         }
-        // ESS / Pantheon: curated explicit groups (search chrome not shown).
+        // ESS: curated explicit groups (search chrome not shown).
         return groupByExplicitGroup(specs, section);
     }
 
@@ -257,7 +238,14 @@ public final class EshWindowRegistry {
             ResourceLocation icon = treeNav
                 ? null
                 : (s.icon() != null ? s.icon() : EshModLogoResolver.resolve(s.modId()));
-            leaves.add(new EscHubLeaf(s.registryKey(), s.title().getString(), s.subtitle(), icon));
+            leaves.add(new EscHubLeaf(
+                s.registryKey(),
+                s.title().getString(),
+                s.subtitle(),
+                icon,
+                s.enabled(),
+                s.recommendHint()
+            ));
         }
         return leaves;
     }

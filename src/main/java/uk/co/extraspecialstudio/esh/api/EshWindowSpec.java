@@ -22,8 +22,9 @@ public final class EshWindowSpec {
     private final String subtitle;
     private final int sortOrder;
     private final ResourceLocation icon;
-    /** Optional badge for the accordion group this leaf belongs to (overrides first-leaf inherit). */
     private final ResourceLocation groupIcon;
+    private final boolean enabled;
+    private final String recommendHint;
 
     private EshWindowSpec(Builder b) {
         this.modId = b.modId;
@@ -38,6 +39,8 @@ public final class EshWindowSpec {
         this.sortOrder = b.sortOrder;
         this.icon = b.icon;
         this.groupIcon = b.groupIcon;
+        this.enabled = b.enabled;
+        this.recommendHint = b.recommendHint;
     }
 
     public String modId() {
@@ -84,17 +87,20 @@ public final class EshWindowSpec {
         return sortOrder;
     }
 
-    /** Explicit icon, or null to auto-resolve from modId. */
     public ResourceLocation icon() {
         return icon;
     }
 
-    /**
-     * Explicit group badge for IconPolicy. When any leaf in a group sets this, the group
-     * uses it instead of inheriting the first leaf's icon.
-     */
     public ResourceLocation groupIcon() {
         return groupIcon;
+    }
+
+    public boolean enabled() {
+        return enabled;
+    }
+
+    public String recommendHint() {
+        return recommendHint;
     }
 
     public static Builder builder(String modId, String windowId, Component title) {
@@ -118,6 +124,8 @@ public final class EshWindowSpec {
         private int sortOrder = 0;
         private ResourceLocation icon;
         private ResourceLocation groupIcon;
+        private boolean enabled = true;
+        private String recommendHint = "";
 
         private Builder(String modId, String windowId, Component title) {
             this.modId = Objects.requireNonNull(modId, "modId");
@@ -161,9 +169,23 @@ public final class EshWindowSpec {
             return this;
         }
 
-        /** Badge for the accordion group row (see EscHubIconPolicy / ESH docs). */
         public Builder groupIcon(ResourceLocation groupIcon) {
             this.groupIcon = groupIcon;
+            return this;
+        }
+
+        /** Greyed recommended stub when the target mod is not installed. */
+        public Builder recommended(String hint) {
+            this.enabled = false;
+            this.recommendHint = hint == null ? "" : hint;
+            if (this.factory == null) {
+                this.factory = parent -> parent;
+            }
+            return this;
+        }
+
+        public Builder enabled(boolean enabled) {
+            this.enabled = enabled;
             return this;
         }
 

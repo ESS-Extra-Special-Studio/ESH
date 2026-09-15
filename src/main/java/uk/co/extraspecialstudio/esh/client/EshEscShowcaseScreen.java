@@ -159,8 +159,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
                 focuses[i], EshSectionIcons.forSection(
                     switch (i) {
                         case 0 -> uk.co.extraspecialstudio.esh.api.EshSection.ESS;
-                        case 1 -> uk.co.extraspecialstudio.esh.api.EshSection.PANTHEON;
-                        case 2 -> uk.co.extraspecialstudio.esh.api.EshSection.UTILITY;
+                        case 1 -> uk.co.extraspecialstudio.esh.api.EshSection.UTILITY;
                         default -> uk.co.extraspecialstudio.esh.api.EshSection.MODS;
                     }));
         }

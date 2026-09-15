@@ -13,6 +13,7 @@ import uk.co.extraspecialstudio.esh.api.EshApi;
 import uk.co.extraspecialstudio.esh.api.EshWindowSpec;
 import uk.co.extraspecialstudio.esh.client.EshClientConfig;
 import uk.co.extraspecialstudio.esh.client.EshClientEvents;
+import uk.co.extraspecialstudio.esh.client.EshRecommendedUtilities;
 import uk.co.extraspecialstudio.esh.docs.EssDocsWindows;
 import uk.co.extraspecialstudio.esh.json.EshJsonWindowLoader;
 
@@ -31,6 +32,7 @@ public final class EshMod {
             EshClientEvents.register(modBus);
             EssDocsWindows.registerBuiltins();
             EshJsonWindowLoader.loadFromConfig();
+            EshRecommendedUtilities.seed();
         }
         LOGGER.info("ES Hub (ESH) loaded — F9 opens the hub");
     }

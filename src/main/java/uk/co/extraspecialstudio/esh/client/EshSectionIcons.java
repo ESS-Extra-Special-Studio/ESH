@@ -16,7 +16,6 @@ public final class EshSectionIcons {
         }
         return switch (section) {
             case ESS -> ResourceLocation.fromNamespaceAndPath("extraspecialhub", "textures/gui/ess_badge.png");
-            case PANTHEON -> ResourceLocation.fromNamespaceAndPath("extraspecialhub", "textures/gui/sections/pantheon.png");
             case UTILITY -> ResourceLocation.fromNamespaceAndPath("minecraft", "textures/item/iron_pickaxe.png");
             case MODS -> ResourceLocation.fromNamespaceAndPath("minecraft", "textures/item/comparator.png");
         };

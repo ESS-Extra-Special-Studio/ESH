@@ -317,18 +317,13 @@ public final class EshHubScreen extends EscScreen {
         EscHubSection sel = hubCtx.selectedSection();
         if (sel != null && EshSection.MODS.name().equals(sel.id())) {
             hubCtx.setHeaderTips(List.of(
-                "Other Mods — third-party menus only. Search / Filter above the list.",
-                "Studio tools live under ESS / PantheonAPI / Utility."
+                "Mods — gameplay and settings menus. Search / Filter above the list.",
+                "Studio utilities (CTL, WhatLIB) live under Utility."
             ));
         } else if (sel != null && EshSection.UTILITY.name().equals(sel.id())) {
             hubCtx.setHeaderTips(List.of(
                 "Utility — ops & power-user tools. Search / Filter above the list.",
-                "Third-party utility mods register here with EshSection.UTILITY."
-            ));
-        } else if (sel != null && EshSection.PANTHEON.name().equals(sel.id())) {
-            hubCtx.setHeaderTips(List.of(
-                "Open Pantheon Hub, then pick Hermes / Aegis from the dock.",
-                "Path: F9 → PantheonAPI → Pantheon Hub → Hermes"
+                "Grey badges are recommended studio tools that are not installed yet."
             ));
         } else if (EscThemeManager.isPlayerThemeLocked()) {
             hubCtx.setHeaderTips(List.of(
@@ -363,7 +358,7 @@ public final class EshHubScreen extends EscScreen {
             if (section == EshSection.MODS || section == EshSection.UTILITY) {
                 return EshWindowRegistry.get().groupsForSection(section, listMode, searchQuery);
             }
-            // ESS / Pantheon stay curated — no search chrome.
+            // ESS stays curated — no search chrome.
             return EshWindowRegistry.get().groupsForSection(section, EshModsListMode.BY_AUTHOR, "");
         } catch (IllegalArgumentException e) {
             return List.of();
@@ -373,8 +368,28 @@ public final class EshHubScreen extends EscScreen {
     private void openLeaf(EscHubLeaf leaf) {
         rememberSection();
         EshHubSession.rememberHubState(savedSectionIndex, savedExpandedGroupId);
+        if (leaf != null && !leaf.enabled()) {
+            String hint = leaf.recommendHint().isBlank()
+                ? ("Install " + leaf.title() + " to unlock this tool.")
+                : leaf.recommendHint();
+            hubCtx.setHeaderTips(List.of(hint, "This badge stays until the mod is installed."));
+            if (minecraft != null && minecraft.player != null) {
+                minecraft.player.displayClientMessage(net.minecraft.network.chat.Component.literal(hint), true);
+            }
+            return;
+        }
         EshWindowSpec spec = EshWindowRegistry.get().find(leaf.id());
         if (spec == null || minecraft == null) {
+            return;
+        }
+        if (!spec.enabled()) {
+            String hint = spec.recommendHint().isBlank()
+                ? ("Install " + spec.title().getString() + " to unlock this tool.")
+                : spec.recommendHint();
+            hubCtx.setHeaderTips(List.of(hint, "This badge stays until the mod is installed."));
+            if (minecraft.player != null) {
+                minecraft.player.displayClientMessage(net.minecraft.network.chat.Component.literal(hint), true);
+            }
             return;
         }
         Screen child = spec.factory().apply(this);

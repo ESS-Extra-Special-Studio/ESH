@@ -72,7 +72,7 @@ public final class EshClientEvents {
     }
 
     /**
-     * Propagate “opened from hub” onto child screens (Pantheon → Hermes, CTL S2C panel, etc.).
+     * Propagate “opened from hub” onto child screens (CTL S2C panel, nested menus, etc.).
      */
     @SubscribeEvent
     public static void onScreenOpening(ScreenEvent.Opening event) {

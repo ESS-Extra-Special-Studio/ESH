@@ -5,27 +5,24 @@ package uk.co.extraspecialstudio.esh.api;
  */
 public enum EshSection {
     ESS,
-    PANTHEON,
     /** Ops / power-user tools (search + filter; studio + third-party). */
     UTILITY,
-    /** Third-party / other authors' menus (search + filter). */
+    /** Gameplay / settings menus (studio + third-party). */
     MODS;
 
     public String displayName() {
         return switch (this) {
             case ESS -> "ESS";
-            case PANTHEON -> "PantheonAPI";
             case UTILITY -> "Utility";
-            case MODS -> "Other Mods";
+            case MODS -> "Mods";
         };
     }
 
     public String subtitle() {
         return switch (this) {
             case ESS -> "Studio docs & stack";
-            case PANTHEON -> "Pantheon Hub + dock";
             case UTILITY -> "Ops & tools · search";
-            case MODS -> "Third-party menus";
+            case MODS -> "Installed mod menus";
         };
     }
 }
