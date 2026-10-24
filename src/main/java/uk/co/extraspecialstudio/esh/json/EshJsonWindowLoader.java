@@ -97,7 +97,7 @@ public final class EshJsonWindowLoader {
         String iconPath = str(o, "icon", "");
         if (!iconPath.isBlank()) {
             try {
-                b.icon(net.minecraft.resources.ResourceLocation.parse(iconPath));
+                b.icon(net.minecraft.resources.Identifier.parse(iconPath));
             } catch (Exception ignored) {
             }
         }

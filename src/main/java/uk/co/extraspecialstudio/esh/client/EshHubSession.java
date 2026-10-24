@@ -71,6 +71,6 @@ public final class EshHubSession {
             return;
         }
         active = true;
-        mc.setScreen(new EshHubScreen());
+        mc.gui.setScreen(new EshHubScreen());
     }
 }

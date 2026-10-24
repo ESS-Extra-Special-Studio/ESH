@@ -7,9 +7,10 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
@@ -17,7 +18,6 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import org.lwjgl.glfw.GLFW;
 import uk.co.extraspecialstudio.esh.EshMod;
 import uk.co.extraspecialstudio.esh.api.EshOwnsHubNav;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
@@ -29,12 +29,16 @@ import uk.co.extraspecialstudio.extraspecial.esc.ui.EscUiStyle;
 
 @EventBusSubscriber(modid = EshMod.MOD_ID, value = Dist.CLIENT)
 public final class EshClientEvents {
+    public static final KeyMapping.Category HUB_CATEGORY = new KeyMapping.Category(
+        Identifier.fromNamespaceAndPath(EshMod.MOD_ID, "main")
+    );
+
     public static final KeyMapping OPEN_HUB = new KeyMapping(
         "key.extraspecialhub.open",
         KeyConflictContext.UNIVERSAL,
-        InputConstants.Type.KEYSYM,
-        GLFW.GLFW_KEY_F9,
-        "key.categories.extraspecialhub"
+        InputConstants.Type.KEYBOARD,
+        InputConstants.KEY_F9,
+        HUB_CATEGORY
     );
 
     private static final int HUB_BTN_W = 72;
@@ -49,24 +53,28 @@ public final class EshClientEvents {
     }
 
     private static void onRegisterKeys(RegisterKeyMappingsEvent event) {
+        event.registerCategory(HUB_CATEGORY);
         event.register(OPEN_HUB);
     }
 
-    private static void onRegisterReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener((ResourceManagerReloadListener) manager -> EshModLogoResolver.clearCache());
+    private static void onRegisterReloadListeners(AddClientReloadListenersEvent event) {
+        event.addListener(
+            Identifier.fromNamespaceAndPath(EshMod.MOD_ID, "mod_logos"),
+            (ResourceManagerReloadListener) manager -> EshModLogoResolver.clearCache()
+        );
     }
 
     @SubscribeEvent
     public static void onClientTick(ClientTickEvent.Post event) {
         Minecraft mc = Minecraft.getInstance();
         while (OPEN_HUB.consumeClick()) {
-            if (mc.screen instanceof EshHubScreen) {
+            if (mc.gui.screen() instanceof EshHubScreen) {
                 EscSound.play(EscUiCue.CLOSE);
                 EshHubSession.end();
-                mc.setScreen(null);
+                mc.gui.setScreen(null);
             } else {
                 EshHubSession.begin();
-                mc.setScreen(new EshHubScreen());
+                mc.gui.setScreen(new EshHubScreen());
             }
         }
     }
@@ -80,7 +88,7 @@ public final class EshClientEvents {
         if (next == null || next instanceof EshHubScreen) {
             return;
         }
-        Screen cur = Minecraft.getInstance().screen;
+        Screen cur = Minecraft.getInstance().gui.screen();
         if (cur instanceof EshHubScreen || EshHubSession.isHosted(cur)) {
             EshHubSession.markHosted(next);
         }

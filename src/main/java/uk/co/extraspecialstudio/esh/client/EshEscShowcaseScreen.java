@@ -1,7 +1,8 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSounds;
 import uk.co.extraspecialstudio.extraspecial.esc.theme.EscComponentSkin;
@@ -75,7 +76,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
     }
 
     @Override
-    protected void renderPage(GuiGraphics g, EscRect panel, float alpha) {
+    protected void renderPage(GuiGraphicsExtractor g, EscRect panel, float alpha) {
         EscTypography.draw(g, font, pageLabel().toUpperCase() + " — click Page to cycle",
             panel.x() + 10, panel.y() + 10, style, EscTypeRole.META, panel.width() - 20, alpha);
         switch (page) {
@@ -87,7 +88,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderMenuBank(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderMenuBank(GuiGraphicsExtractor g, EscRect panel, float alpha) {
         EscTypography.draw(g, font, "Menu Sound bank — audition 1–20, bind later via EscUiCueMap",
             panel.x() + 10, panel.y() + 30, style, EscTypeRole.BODY, panel.width() - 20, alpha);
         EscTypography.draw(g, font, "Now previewing: MENU SOUND " + menuPreview,
@@ -118,7 +119,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderFrames(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderFrames(GuiGraphicsExtractor g, EscRect panel, float alpha) {
         EscFrameStyle[] frames = EscFrameStyle.values();
         int cols = Math.min(3, frames.length);
         int gap = 8;
@@ -148,7 +149,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderFocusSkins(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderFocusSkins(GuiGraphicsExtractor g, EscRect panel, float alpha) {
         float[] focuses = {0.15f, 0.45f, 0.75f, 1f};
         String[] labels = {"MUTED", "IDLE", "NEAR", "FOCUS"};
         int cardW = Math.min(150, (panel.width() - 40) / 4);
@@ -177,7 +178,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderEffects(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderEffects(GuiGraphicsExtractor g, EscRect panel, float alpha) {
         EscEffectPreset[] presets = EscEffectPreset.values();
         int cols = 3;
         int gap = 8;
@@ -200,7 +201,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderLive(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderLive(GuiGraphicsExtractor g, EscRect panel, float alpha) {
         EscTypography.draw(g, font, "Footer / buttons use EscChromeButton · panel CRT from active theme",
             panel.x() + 10, panel.y() + 30, style, EscTypeRole.BODY, panel.width() - 20, alpha);
 
@@ -221,7 +222,10 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (page == 4 && button == 0 && panelBounds.contains(mouseX, mouseY)) {
             int cols = 10;
             int gap = 4;
@@ -246,6 +250,6 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
                 }
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubled);
     }
 }

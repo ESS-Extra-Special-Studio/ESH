@@ -1,8 +1,8 @@
 package uk.co.extraspecialstudio.esh.docs;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import uk.co.extraspecialstudio.esh.api.EshApi;
 import uk.co.extraspecialstudio.esh.api.EshSection;
 import uk.co.extraspecialstudio.esh.api.EshWindowSpec;
@@ -33,7 +33,7 @@ public final class EssDocsWindows {
         return new DocScreen(parent, title, lines, null);
     }
 
-    public static Screen openDoc(Screen parent, String title, List<String> lines, ResourceLocation badge) {
+    public static Screen openDoc(Screen parent, String title, List<String> lines, Identifier badge) {
         return new DocScreen(parent, title, lines, badge);
     }
 
@@ -245,7 +245,7 @@ public final class EssDocsWindows {
             "  .group(groupId, groupTitle) — accordion group under the section",
             "  .subtitle(\"short blurb\")",
             "  .sortOrder(int) — lower sorts earlier",
-            "  .icon(ResourceLocation) — optional; else ESH tries your mod logo",
+            "  .icon(Identifier) — optional; else ESH tries your mod logo",
             "  .factory(parent -> new YourScreen(parent)) — required; returns the Screen to open",
             "  .build()",
             "",
@@ -351,7 +351,7 @@ public final class EssDocsWindows {
      *             ESS docs are all owned by extraspecialhub, so stack pages pass their own logo.
      */
     private static void register(String id, String title, String subtitle, String groupId, String groupTitle,
-                                int sort, ResourceLocation icon, List<String> lines) {
+                                int sort, Identifier icon, List<String> lines) {
         EshWindowSpec.Builder b = EshWindowSpec.builder("extraspecialhub", id, title)
             .section(EshSection.ESS)
             .author("Extra Special Studio")
@@ -369,13 +369,13 @@ public final class EssDocsWindows {
         private static final int BADGE_SIZE = 64;
         private static final int BADGE_GAP = 8;
         private final List<String> lines;
-        private final ResourceLocation badge;
+        private final Identifier badge;
         private int scrollPx;
         private int cachedMaxW = -1;
         private int cachedContentH = -1;
         private List<List<String>> cachedWrapped = List.of();
 
-        private DocScreen(Screen parent, String title, List<String> lines, ResourceLocation badge) {
+        private DocScreen(Screen parent, String title, List<String> lines, Identifier badge) {
             super(EscText.literal(title), parent, EscTransition.TERMINAL_BOOT);
             this.lines = lines;
             this.badge = badge;
@@ -386,7 +386,7 @@ public final class EssDocsWindows {
         }
 
         @Override
-        protected void renderPage(GuiGraphics g, EscRect panel, float alpha) {
+        protected void renderPage(GuiGraphicsExtractor g, EscRect panel, float alpha) {
             int pad = 12;
             int maxW = panel.width() - pad * 2;
             int hintH = font.lineHeight + 6;
