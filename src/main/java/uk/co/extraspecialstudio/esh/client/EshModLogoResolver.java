@@ -81,7 +81,7 @@ public final class EshModLogoResolver {
             return;
         }
         // Defer past the current frame so first paint stays light.
-        mc.tell(() -> {
+        mc.schedule(() -> {
             try {
                 Optional<ResourceLocation> packHit = lookupPackTextures(modId);
                 if (packHit.isPresent()) {

@@ -7,9 +7,10 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.neoforge.client.event.RegisterClientReloadListenersEvent;
+import net.neoforged.neoforge.client.event.AddClientReloadListenersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
@@ -52,8 +53,11 @@ public final class EshClientEvents {
         event.register(OPEN_HUB);
     }
 
-    private static void onRegisterReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener((ResourceManagerReloadListener) manager -> EshModLogoResolver.clearCache());
+    private static void onRegisterReloadListeners(AddClientReloadListenersEvent event) {
+        event.addListener(
+            ResourceLocation.fromNamespaceAndPath(EshMod.MOD_ID, "mod_logos"),
+            (ResourceManagerReloadListener) manager -> EshModLogoResolver.clearCache()
+        );
     }
 
     @SubscribeEvent
