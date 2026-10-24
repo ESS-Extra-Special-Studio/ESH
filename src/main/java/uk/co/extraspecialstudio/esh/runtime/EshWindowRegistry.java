@@ -25,9 +25,9 @@ public final class EshWindowRegistry {
     private static final EshWindowRegistry INSTANCE = new EshWindowRegistry();
 
     private static final ResourceLocation ESS_BADGE =
-        ResourceLocation.fromNamespaceAndPath("extraspecialhub", "textures/gui/ess_badge.png");
+        new ResourceLocation("extraspecialhub", "textures/gui/ess_badge.png");
     private static final ResourceLocation ESG_BADGE =
-        ResourceLocation.fromNamespaceAndPath("extraspecialhub", "textures/gui/esg_badge.png");
+        new ResourceLocation("extraspecialhub", "textures/gui/esg_badge.png");
 
     private final EslRegistry<EshWindowSpec> windows = new EslRegistry<>();
 

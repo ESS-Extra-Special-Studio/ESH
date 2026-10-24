@@ -31,7 +31,7 @@ public final class EshModLogoResolver {
     private static final Map<String, Optional<ResourceLocation>> CACHE = new ConcurrentHashMap<>();
     private static final Set<String> LOADING = ConcurrentHashMap.newKeySet();
     private static final Map<ResourceLocation, DynamicTexture> DYNAMICS = new ConcurrentHashMap<>();
-    private static final ResourceLocation FALLBACK = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/unknown_pack.png");
+    private static final ResourceLocation FALLBACK = new ResourceLocation("minecraft", "textures/misc/unknown_pack.png");
     private static volatile boolean dirty;
 
     private EshModLogoResolver() {
@@ -199,7 +199,7 @@ public final class EshModLogoResolver {
         try {
             NativeImage image = NativeImage.read(new ByteArrayInputStream(bytes));
             DynamicTexture texture = new DynamicTexture(image);
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(
+            ResourceLocation id = new ResourceLocation(
                 "extraspecialhub", "dynamic_mod_logo/" + modId.toLowerCase(Locale.ROOT)
             );
             mc.getTextureManager().register(id, texture);
@@ -225,7 +225,7 @@ public final class EshModLogoResolver {
 
     private static ResourceLocation tryParse(String path) {
         try {
-            return ResourceLocation.parse(path);
+            return ResourceLocation.tryParse(path);
         } catch (Exception e) {
             return null;
         }
