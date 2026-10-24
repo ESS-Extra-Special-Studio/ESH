@@ -3,6 +3,7 @@ package uk.co.extraspecialstudio.esh.client;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import uk.co.extraspecialstudio.esh.EshMod;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
@@ -134,13 +135,14 @@ public abstract class EshEscPageScreen extends EscScreen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
         if (keyCode == InputConstants.KEY_ESCAPE || keyCode == InputConstants.KEY_BACKSPACE) {
             EscSound.play(EscUiCue.BACK);
             onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override

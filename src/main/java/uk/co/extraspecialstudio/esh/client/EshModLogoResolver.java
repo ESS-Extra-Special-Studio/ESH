@@ -3,15 +3,13 @@ package uk.co.extraspecialstudio.esh.client;
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforgespi.language.IModInfo;
 import net.neoforged.neoforgespi.locating.IModFile;
 
 import java.io.ByteArrayInputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -28,20 +26,20 @@ import java.util.concurrent.ConcurrentHashMap;
  * does not hitch on jar I/O. Dynamic textures are released on {@link #clearCache()}.
  */
 public final class EshModLogoResolver {
-    private static final Map<String, Optional<ResourceLocation>> CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Optional<Identifier>> CACHE = new ConcurrentHashMap<>();
     private static final Set<String> LOADING = ConcurrentHashMap.newKeySet();
-    private static final Map<ResourceLocation, DynamicTexture> DYNAMICS = new ConcurrentHashMap<>();
-    private static final ResourceLocation FALLBACK = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/unknown_pack.png");
+    private static final Map<Identifier, DynamicTexture> DYNAMICS = new ConcurrentHashMap<>();
+    private static final Identifier FALLBACK = Identifier.fromNamespaceAndPath("minecraft", "textures/misc/unknown_pack.png");
     private static volatile boolean dirty;
 
     private EshModLogoResolver() {
     }
 
-    public static ResourceLocation resolve(String modId) {
+    public static Identifier resolve(String modId) {
         if (modId == null || modId.isBlank()) {
             return FALLBACK;
         }
-        Optional<ResourceLocation> hit = CACHE.get(modId);
+        Optional<Identifier> hit = CACHE.get(modId);
         if (hit != null) {
             return hit.orElse(FALLBACK);
         }
@@ -49,11 +47,11 @@ public final class EshModLogoResolver {
         return FALLBACK;
     }
 
-    public static ResourceLocation resolveOrNull(String modId) {
+    public static Identifier resolveOrNull(String modId) {
         if (modId == null || modId.isBlank()) {
             return null;
         }
-        Optional<ResourceLocation> hit = CACHE.get(modId);
+        Optional<Identifier> hit = CACHE.get(modId);
         if (hit != null) {
             return hit.orElse(null);
         }
@@ -81,9 +79,9 @@ public final class EshModLogoResolver {
             return;
         }
         // Defer past the current frame so first paint stays light.
-        mc.tell(() -> {
+        mc.schedule(() -> {
             try {
-                Optional<ResourceLocation> packHit = lookupPackTextures(modId);
+                Optional<Identifier> packHit = lookupPackTextures(modId);
                 if (packHit.isPresent()) {
                     CACHE.put(modId, packHit);
                     dirty = true;
@@ -110,7 +108,7 @@ public final class EshModLogoResolver {
         });
     }
 
-    private static Optional<ResourceLocation> lookupPackTextures(String modId) {
+    private static Optional<Identifier> lookupPackTextures(String modId) {
         String[] candidates = {
             modId + ":logo.png",
             modId + ":textures/logo.png",
@@ -121,7 +119,7 @@ public final class EshModLogoResolver {
             modId + ":pack.png"
         };
         for (String c : candidates) {
-            ResourceLocation rl = tryParse(c);
+            Identifier rl = tryParse(c);
             if (rl != null && resourceExists(rl)) {
                 return Optional.of(rl);
             }
@@ -144,7 +142,7 @@ public final class EshModLogoResolver {
                 String fileName = normalized.contains("/")
                     ? normalized.substring(normalized.lastIndexOf('/') + 1)
                     : normalized;
-                ResourceLocation assetGuess = tryParse(modId + ":textures/gui/" + fileName);
+                Identifier assetGuess = tryParse(modId + ":textures/gui/" + fileName);
                 if (assetGuess != null && resourceExists(assetGuess)) {
                     return Optional.of(assetGuess);
                 }
@@ -175,13 +173,12 @@ public final class EshModLogoResolver {
                 }
                 String normalized = logoFile.replace('\\', '/');
                 IModFile modFile = info.getOwningFile().getFile();
-                String[] parts = normalized.split("/");
-                Path path = modFile.findResource(parts);
-                if (path == null || !Files.exists(path)) {
-                    return null;
-                }
+                String relative = normalized.startsWith("/") ? normalized.substring(1) : normalized;
                 try {
-                    return Files.readAllBytes(path);
+                    if (!modFile.getContents().containsFile(relative)) {
+                        return null;
+                    }
+                    return modFile.getContents().readFile(relative);
                 } catch (Exception e) {
                     return null;
                 }
@@ -191,15 +188,15 @@ public final class EshModLogoResolver {
         }
     }
 
-    private static Optional<ResourceLocation> uploadDynamic(String modId, byte[] bytes) {
+    private static Optional<Identifier> uploadDynamic(String modId, byte[] bytes) {
         Minecraft mc = Minecraft.getInstance();
         if (mc == null || bytes == null || bytes.length == 0) {
             return Optional.empty();
         }
         try {
             NativeImage image = NativeImage.read(new ByteArrayInputStream(bytes));
-            DynamicTexture texture = new DynamicTexture(image);
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(
+            DynamicTexture texture = new DynamicTexture(() -> "esh_logo_" + modId.toLowerCase(Locale.ROOT), image);
+            Identifier id = Identifier.fromNamespaceAndPath(
                 "extraspecialhub", "dynamic_mod_logo/" + modId.toLowerCase(Locale.ROOT)
             );
             mc.getTextureManager().register(id, texture);
@@ -210,7 +207,7 @@ public final class EshModLogoResolver {
         }
     }
 
-    private static boolean resourceExists(ResourceLocation rl) {
+    private static boolean resourceExists(Identifier rl) {
         try {
             Minecraft mc = Minecraft.getInstance();
             if (mc == null) {
@@ -223,15 +220,15 @@ public final class EshModLogoResolver {
         }
     }
 
-    private static ResourceLocation tryParse(String path) {
+    private static Identifier tryParse(String path) {
         try {
-            return ResourceLocation.parse(path);
+            return Identifier.parse(path);
         } catch (Exception e) {
             return null;
         }
     }
 
-    public static ResourceLocation fallback() {
+    public static Identifier fallback() {
         return FALLBACK;
     }
 
@@ -240,7 +237,7 @@ public final class EshModLogoResolver {
         CACHE.clear();
         LOADING.clear();
         Minecraft mc = Minecraft.getInstance();
-        for (ResourceLocation id : DYNAMICS.keySet()) {
+        for (Identifier id : DYNAMICS.keySet()) {
             if (mc != null) {
                 mc.getTextureManager().release(id);
             }
