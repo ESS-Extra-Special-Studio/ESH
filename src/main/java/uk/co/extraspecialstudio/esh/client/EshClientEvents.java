@@ -9,10 +9,12 @@ import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.ClientRegistry;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.client.event.ScreenOpenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -44,12 +46,12 @@ public final class EshClientEvents {
     }
 
     public static void register(IEventBus modBus) {
-        modBus.addListener(EshClientEvents::onRegisterKeys);
+        modBus.addListener(EshClientEvents::onClientSetup);
         modBus.addListener(EshClientEvents::onRegisterReloadListeners);
     }
 
-    private static void onRegisterKeys(RegisterKeyMappingsEvent event) {
-        event.register(OPEN_HUB);
+    private static void onClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> ClientRegistry.registerKeyBinding(OPEN_HUB));
     }
 
     private static void onRegisterReloadListeners(RegisterClientReloadListenersEvent event) {
@@ -76,8 +78,8 @@ public final class EshClientEvents {
      * Propagate “opened from hub” onto child screens (CTL S2C panel, nested menus, etc.).
      */
     @SubscribeEvent
-    public static void onScreenOpening(ScreenEvent.Opening event) {
-        Screen next = event.getNewScreen();
+    public static void onScreenOpening(ScreenOpenEvent event) {
+        Screen next = event.getScreen();
         if (next == null || next instanceof EshHubScreen) {
             return;
         }
@@ -92,7 +94,7 @@ public final class EshClientEvents {
      * Screens that own their own back nav opt out via {@link EshOwnsHubNav} / {@link EscOwnsBackNav}.
      */
     @SubscribeEvent
-    public static void onScreenInit(ScreenEvent.Init.Post event) {
+    public static void onScreenInit(ScreenEvent.InitScreenEvent.Post event) {
         Screen screen = event.getScreen();
         if (screen instanceof EshHubScreen || screen instanceof EscOwnsBackNav || !EshHubSession.isHosted(screen)) {
             return;
@@ -121,13 +123,13 @@ public final class EshClientEvents {
             if (!(child instanceof AbstractWidget widget)) {
                 continue;
             }
-            if (widget.getY() > topBand || widget.getHeight() <= 0) {
+            if (widget.y > topBand || widget.getHeight() <= 0) {
                 continue;
             }
-            if (widget.getX() + widget.getWidth() / 2 < screen.width / 2) {
+            if (widget.x + widget.getWidth() / 2 < screen.width / 2) {
                 continue;
             }
-            if (anchor == null || widget.getX() < anchor.getX()) {
+            if (anchor == null || widget.x < anchor.x) {
                 anchor = widget;
             }
         }
@@ -135,7 +137,7 @@ public final class EshClientEvents {
         int w = HUB_BTN_W;
         int h = anchor != null ? anchor.getHeight() : HUB_BTN_H;
         int x = 4;
-        int y = anchor != null ? anchor.getY() : 8;
+        int y = anchor != null ? anchor.y : 8;
 
         if (overlapsAny(screen, x, y, w, h, null)) {
             for (int attempt = 0; attempt < 6; attempt++) {
@@ -161,9 +163,9 @@ public final class EshClientEvents {
             if (!(child instanceof AbstractWidget widget) || widget == ignore) {
                 continue;
             }
-            int wx1 = widget.getX() + widget.getWidth();
-            int wy1 = widget.getY() + widget.getHeight();
-            if (x < wx1 && x1 > widget.getX() && y < wy1 && y1 > widget.getY()) {
+            int wx1 = widget.x + widget.getWidth();
+            int wy1 = widget.y + widget.getHeight();
+            if (x < wx1 && x1 > widget.x && y < wy1 && y1 > widget.y) {
                 return true;
             }
         }

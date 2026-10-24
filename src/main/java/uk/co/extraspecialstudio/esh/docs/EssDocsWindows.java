@@ -1,7 +1,7 @@
 package uk.co.extraspecialstudio.esh.docs;
 
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import uk.co.extraspecialstudio.extraspecial.esc.ui.EscGraphics;
 import net.minecraft.resources.ResourceLocation;
 import uk.co.extraspecialstudio.esh.api.EshApi;
 import uk.co.extraspecialstudio.esh.api.EshSection;
@@ -386,7 +386,7 @@ public final class EssDocsWindows {
         }
 
         @Override
-        protected void renderPage(GuiGraphics g, EscRect panel, float alpha) {
+        protected void renderPage(EscGraphics g, EscRect panel, float alpha) {
             int pad = 12;
             int maxW = panel.width() - pad * 2;
             int hintH = font.lineHeight + 6;

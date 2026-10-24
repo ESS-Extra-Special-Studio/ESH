@@ -141,8 +141,8 @@ dependencies {
 
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
-    implementation fg.deobf(files("../ESL/build/libs/extraspeciallib-${esl_version}+${minecraft_version}-forge.jar"))
-    implementation fg.deobf(files("../ESC/build/libs/extraspecialcore-${esc_version}+${minecraft_version}-forge.jar"))
+    implementation fg.deobf(files("C:/Users/Ksivi/IdeaProjects/ESL - 1.18.2 Forge/build/libs/extraspeciallib-1.2.0+1.18.2-forge.jar"))
+    implementation fg.deobf(files("C:/Users/Ksivi/IdeaProjects/ESC - 1.18.2 Forge/build/libs/extraspecialcore-2.1.0+1.18.2-forge.jar"))
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
@@ -200,7 +200,7 @@ tasks.register('copyToTestPacks') {
     }
 }
 
-tasks.named('build').configure { finalizedBy 'copyToTestPacks' }
+// Port builds must not replace the 1.20.1 jars in the test packs.
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation

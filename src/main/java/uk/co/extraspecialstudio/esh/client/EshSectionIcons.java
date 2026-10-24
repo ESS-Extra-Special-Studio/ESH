@@ -12,12 +12,12 @@ public final class EshSectionIcons {
 
     public static ResourceLocation forSection(EshSection section) {
         if (section == null) {
-            return ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/unknown_pack.png");
+            return new ResourceLocation("minecraft", "textures/misc/unknown_pack.png");
         }
         return switch (section) {
-            case ESS -> ResourceLocation.fromNamespaceAndPath("extraspecialhub", "textures/gui/ess_badge.png");
-            case UTILITY -> ResourceLocation.fromNamespaceAndPath("minecraft", "textures/item/iron_pickaxe.png");
-            case MODS -> ResourceLocation.fromNamespaceAndPath("minecraft", "textures/item/comparator.png");
+            case ESS -> new ResourceLocation("extraspecialhub", "textures/gui/ess_badge.png");
+            case UTILITY -> new ResourceLocation("minecraft", "textures/item/iron_pickaxe.png");
+            case MODS -> new ResourceLocation("minecraft", "textures/item/comparator.png");
         };
     }
 }

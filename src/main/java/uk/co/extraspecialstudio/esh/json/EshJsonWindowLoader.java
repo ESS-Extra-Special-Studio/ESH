@@ -114,7 +114,8 @@ public final class EshJsonWindowLoader {
             b.factory(parent -> {
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player != null) {
-                    mc.player.connection.sendCommand(cmd.startsWith("/") ? cmd.substring(1) : cmd);
+                    String line = cmd.startsWith("/") ? cmd : "/" + cmd;
+                    mc.player.chat(line);
                 }
                 return parent;
             });

@@ -108,7 +108,7 @@ public final class EshWindowSpec {
     }
 
     public static Builder builder(String modId, String windowId, String title) {
-        return new Builder(modId, windowId, Component.literal(title));
+        return new Builder(modId, windowId, new net.minecraft.network.chat.TextComponent(title));
     }
 
     public static final class Builder {

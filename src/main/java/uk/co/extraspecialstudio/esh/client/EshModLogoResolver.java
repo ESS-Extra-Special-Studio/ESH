@@ -220,7 +220,7 @@ public final class EshModLogoResolver {
                 return false;
             }
             ResourceManager rm = mc.getResourceManager();
-            return rm.getResource(rl).isPresent();
+            return rm.hasResource(rl);
         } catch (Exception e) {
             return false;
         }

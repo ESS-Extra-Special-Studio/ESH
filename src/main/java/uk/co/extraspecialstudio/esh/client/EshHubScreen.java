@@ -1,9 +1,9 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import net.minecraft.client.gui.GuiGraphics;
+import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
-import com.mojang.blaze3d.platform.InputConstants;
 import uk.co.extraspecialstudio.esh.api.EshSection;
 import uk.co.extraspecialstudio.esh.api.EshWindowSpec;
 import uk.co.extraspecialstudio.esh.EshMod;
@@ -17,6 +17,7 @@ import uk.co.extraspecialstudio.extraspecial.esc.theme.EscThemeManager;
 import uk.co.extraspecialstudio.extraspecial.esc.theme.EscThemeResolved;
 import uk.co.extraspecialstudio.extraspecial.esc.theme.EscThemeSwatch;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscBackground;
+import uk.co.extraspecialstudio.extraspecial.esc.ui.EscGraphics;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscButtonBar;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscColorPickerScreen;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscCrtLayer;
@@ -374,7 +375,7 @@ public final class EshHubScreen extends EscScreen {
                 : leaf.recommendHint();
             hubCtx.setHeaderTips(List.of(hint, "This badge stays until the mod is installed."));
             if (minecraft != null && minecraft.player != null) {
-                minecraft.player.displayClientMessage(net.minecraft.network.chat.Component.literal(hint), true);
+                minecraft.player.displayClientMessage(new net.minecraft.network.chat.TextComponent(hint), true);
             }
             return;
         }
@@ -388,7 +389,7 @@ public final class EshHubScreen extends EscScreen {
                 : spec.recommendHint();
             hubCtx.setHeaderTips(List.of(hint, "This badge stays until the mod is installed."));
             if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(net.minecraft.network.chat.Component.literal(hint), true);
+                minecraft.player.displayClientMessage(new net.minecraft.network.chat.TextComponent(hint), true);
             }
             return;
         }
@@ -451,8 +452,9 @@ public final class EshHubScreen extends EscScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+    public void render(PoseStack pose, int mouseX, int mouseY, float partialTick) {
+        EscGraphics graphics = new EscGraphics(pose);
+        renderBackground(pose);
         setStyle(EscUiStyle.active(EshMod.MOD_ID));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, style.theme());
@@ -472,7 +474,7 @@ public final class EshHubScreen extends EscScreen {
         int lip = (0xAA << 24) | (style.accentColor() & 0xFFFFFF);
         graphics.fill(footerBounds.x(), footerBounds.y(), footerBounds.right(), footerBounds.y() + 2, lip);
         EscCrtLayer.render(graphics, content, style.theme());
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.render(pose, mouseX, mouseY, partialTick);
     }
 
     @Override
@@ -483,8 +485,8 @@ public final class EshHubScreen extends EscScreen {
                 Button b = footerButtons.get(i);
                 FooterBtn def = footerDefs.get(i);
                 if (def.colorRole() != null
-                    && mouseX >= b.getX() && mouseX < b.getX() + b.getWidth()
-                    && mouseY >= b.getY() && mouseY < b.getY() + b.getHeight()) {
+                    && mouseX >= b.x && mouseX < b.x + b.getWidth()
+                    && mouseY >= b.y && mouseY < b.y + b.getHeight()) {
                     cycleSwatch(def.colorRole());
                     return true;
                 }
@@ -569,7 +571,7 @@ public final class EshHubScreen extends EscScreen {
         if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_SPACE) {
             if (footerFocus >= 0 && footerFocus < footerButtons.size()) {
                 Button b = footerButtons.get(footerFocus);
-                return b.mouseClicked(b.getX() + b.getWidth() * 0.5, b.getY() + b.getHeight() * 0.5, 0);
+                return b.mouseClicked(b.x + b.getWidth() * 0.5, b.y + b.getHeight() * 0.5, 0);
             }
             return true;
         }
@@ -589,6 +591,7 @@ public final class EshHubScreen extends EscScreen {
 
     private void leaveFooterFocus() {
         footerFocus = -1;
+        clearFooterButtonFocus();
         setFocused(null);
         if (hubCtx != null && hubCtx.selectedSection() != null) {
             // Land on last accordion row when coming up from footer.
@@ -608,8 +611,20 @@ public final class EshHubScreen extends EscScreen {
     private void applyFooterFocus(int index) {
         footerFocus = index;
         Button b = footerButtons.get(index);
+        clearFooterButtonFocus();
         setFocused(b);
-        b.setFocused(true);
+        // AbstractWidget.setFocused(boolean) is protected on 1.19.2; changeFocus toggles the flag.
+        if (!b.isFocused()) {
+            b.changeFocus(true);
+        }
+    }
+
+    private void clearFooterButtonFocus() {
+        for (Button button : footerButtons) {
+            if (button.isFocused()) {
+                button.changeFocus(false);
+            }
+        }
     }
 
     @Override
