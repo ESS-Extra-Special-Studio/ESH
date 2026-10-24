@@ -258,7 +258,7 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+        renderBackground(graphics, mouseX, mouseY, partialTick);
         setStyle(EscUiStyle.fromTheme(working));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, working);

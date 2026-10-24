@@ -452,7 +452,7 @@ public final class EshHubScreen extends EscScreen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+        renderBackground(graphics, mouseX, mouseY, partialTick);
         setStyle(EscUiStyle.active(EshMod.MOD_ID));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, style.theme());
@@ -505,12 +505,12 @@ public final class EshHubScreen extends EscScreen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
-        if (layout != null && hubCtx != null && layout.mouseScrolled(hubCtx, hubBounds, mouseX, mouseY, delta)) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (layout != null && hubCtx != null && layout.mouseScrolled(hubCtx, hubBounds, mouseX, mouseY, scrollY)) {
             refreshHeaderTips();
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override

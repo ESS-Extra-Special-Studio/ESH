@@ -97,7 +97,7 @@ public abstract class EshEscPageScreen extends EscScreen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+        renderBackground(graphics, mouseX, mouseY, partialTick);
         setStyle(EscUiStyle.active(EshMod.MOD_ID));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, style.theme());

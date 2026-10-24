@@ -462,12 +462,12 @@ public final class EssDocsWindows {
         }
 
         @Override
-        public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+        public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
             if (panelBounds.contains(mouseX, mouseY)) {
-                scrollPx = Math.max(0, scrollPx - (int) Math.signum(delta) * (font.lineHeight + 2) * 2);
+                scrollPx = Math.max(0, scrollPx - (int) Math.signum(scrollY) * (font.lineHeight + 2) * 2);
                 return true;
             }
-            return super.mouseScrolled(mouseX, mouseY, delta);
+            return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
     }
 }
