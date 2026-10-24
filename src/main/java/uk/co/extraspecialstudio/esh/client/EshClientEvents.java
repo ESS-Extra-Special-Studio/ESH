@@ -121,13 +121,13 @@ public final class EshClientEvents {
             if (!(child instanceof AbstractWidget widget)) {
                 continue;
             }
-            if (widget.getY() > topBand || widget.getHeight() <= 0) {
+            if (widget.y > topBand || widget.getHeight() <= 0) {
                 continue;
             }
-            if (widget.getX() + widget.getWidth() / 2 < screen.width / 2) {
+            if (widget.x + widget.getWidth() / 2 < screen.width / 2) {
                 continue;
             }
-            if (anchor == null || widget.getX() < anchor.getX()) {
+            if (anchor == null || widget.x < anchor.x) {
                 anchor = widget;
             }
         }
@@ -135,7 +135,7 @@ public final class EshClientEvents {
         int w = HUB_BTN_W;
         int h = anchor != null ? anchor.getHeight() : HUB_BTN_H;
         int x = 4;
-        int y = anchor != null ? anchor.getY() : 8;
+        int y = anchor != null ? anchor.y : 8;
 
         if (overlapsAny(screen, x, y, w, h, null)) {
             for (int attempt = 0; attempt < 6; attempt++) {
@@ -161,9 +161,9 @@ public final class EshClientEvents {
             if (!(child instanceof AbstractWidget widget) || widget == ignore) {
                 continue;
             }
-            int wx1 = widget.getX() + widget.getWidth();
-            int wy1 = widget.getY() + widget.getHeight();
-            if (x < wx1 && x1 > widget.getX() && y < wy1 && y1 > widget.getY()) {
+            int wx1 = widget.x + widget.getWidth();
+            int wy1 = widget.y + widget.getHeight();
+            if (x < wx1 && x1 > widget.x && y < wy1 && y1 > widget.y) {
                 return true;
             }
         }
