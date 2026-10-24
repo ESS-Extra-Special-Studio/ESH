@@ -1,8 +1,9 @@
 package uk.co.extraspecialstudio.esh.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
 import net.minecraft.network.chat.Component;
 import uk.co.extraspecialstudio.esh.EshMod;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
@@ -87,7 +88,7 @@ public abstract class EshEscPageScreen extends EscScreen {
     protected void placeFooterLeft(EscRect[] slots) {
     }
 
-    protected abstract void renderPage(GuiGraphics g, EscRect panel, float alpha);
+    protected abstract void renderPage(GuiGraphicsExtractor g, EscRect panel, float alpha);
 
     @Override
     public void tick() {
@@ -96,8 +97,8 @@ public abstract class EshEscPageScreen extends EscScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        extractBackground(graphics, mouseX, mouseY, partialTick);
         setStyle(EscUiStyle.active(EshMod.MOD_ID));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, style.theme());
@@ -119,7 +120,7 @@ public abstract class EshEscPageScreen extends EscScreen {
         renderPage(graphics, panel, alpha);
         EscPanel.renderPanel(graphics, footerBounds, style);
         EscCrtLayer.render(graphics, content, style.theme());
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     private static EscRect scaledRect(EscRect base, float scale) {
@@ -134,19 +135,20 @@ public abstract class EshEscPageScreen extends EscScreen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
         if (keyCode == InputConstants.KEY_ESCAPE || keyCode == InputConstants.KEY_BACKSPACE) {
             EscSound.play(EscUiCue.BACK);
             onClose();
             return true;
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     @Override
     public void onClose() {
         if (minecraft != null) {
-            minecraft.setScreen(parent);
+            minecraft.gui.setScreen(parent);
         }
     }
 }
