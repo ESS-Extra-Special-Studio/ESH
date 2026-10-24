@@ -8,7 +8,7 @@ import uk.co.extraspecialstudio.esh.client.EshModLogoResolver;
 import uk.co.extraspecialstudio.esl.registry.EslRegistry;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.layout.EscHubGroup;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.layout.EscHubLeaf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,12 +61,12 @@ public final class EshWindowRegistry {
         return STACK_CORE_MOD_IDS.contains(modId);
     }
 
-    private static final java.util.Set<String> STACK_CORE_MOD_IDS = java.util.Set.of(
+    private static final java.util.Set<String> STACK_CORE_MOD_IDS = new java.util.HashSet<>(java.util.Arrays.asList(
         "extraspecialhub",
         "extraspecialcore",
         "extraspecialgui",
         "extraspeciallib"
-    );
+    ));
 
     public EshWindowSpec find(String registryKey) {
         return windows.get(registryKey).orElse(null);
@@ -102,7 +102,7 @@ public final class EshWindowRegistry {
     }
 
     private static List<EshWindowSpec> filterSearch(List<EshWindowSpec> specs, String search) {
-        if (search == null || search.isBlank()) {
+        if (search == null || search.trim().isEmpty()) {
             return specs;
         }
         String q = search.toLowerCase(Locale.ROOT).trim();
@@ -120,11 +120,16 @@ public final class EshWindowRegistry {
     }
 
     private static List<EscHubGroup> groupMods(List<EshWindowSpec> specs, EshModsListMode mode, EshSection section) {
-        return switch (mode) {
-            case BY_AUTHOR -> groupByAuthor(specs);
-            case BY_TITLE -> groupFlatByTitle(specs);
-            case BY_GROUP -> groupByExplicitGroup(specs, section);
-        };
+        switch (mode) {
+            case BY_AUTHOR:
+                return groupByAuthor(specs);
+            case BY_TITLE:
+                return groupFlatByTitle(specs);
+            case BY_GROUP:
+                return groupByExplicitGroup(specs, section);
+            default:
+                return groupByAuthor(specs);
+        }
     }
 
     private static List<EscHubGroup> groupByAuthor(List<EshWindowSpec> specs) {
@@ -156,14 +161,21 @@ public final class EshWindowRegistry {
         if (explicit != null) {
             return explicit;
         }
-        return switch (groupId == null ? "" : groupId) {
-            case "ess" -> ESS_BADGE;
-            case "esl" -> EshModLogoResolver.resolve("extraspeciallib");
-            case "esc" -> EshModLogoResolver.resolve("extraspecialcore");
-            case "esg" -> EshModLogoResolver.resolve("extraspecialgui");
-            case "esh" -> EshModLogoResolver.resolve("extraspecialhub");
-            default -> leaves.isEmpty() ? ESS_BADGE : EshModLogoResolver.resolve(leaves.get(0).modId());
-        };
+        String gid = groupId == null ? "" : groupId;
+        switch (gid) {
+            case "ess":
+                return ESS_BADGE;
+            case "esl":
+                return EshModLogoResolver.resolve("extraspeciallib");
+            case "esc":
+                return EshModLogoResolver.resolve("extraspecialcore");
+            case "esg":
+                return EshModLogoResolver.resolve("extraspecialgui");
+            case "esh":
+                return EshModLogoResolver.resolve("extraspecialhub");
+            default:
+                return leaves.isEmpty() ? ESS_BADGE : EshModLogoResolver.resolve(leaves.get(0).modId());
+        }
     }
 
     private static ResourceLocation firstGroupIcon(List<EshWindowSpec> leaves) {
@@ -183,7 +195,7 @@ public final class EshWindowRegistry {
     private static List<EscHubGroup> groupFlatByTitle(List<EshWindowSpec> specs) {
         List<EshWindowSpec> sorted = new ArrayList<>(specs);
         sorted.sort(Comparator.comparing(s -> s.title().getString(), String.CASE_INSENSITIVE_ORDER));
-        return List.of(new EscHubGroup("all", "All mods (A–Z)", toLeaves(sorted)));
+        return java.util.Arrays.asList(new EscHubGroup("all", "All mods (A–Z)", toLeaves(sorted)));
     }
 
     private static List<EscHubGroup> groupByExplicitGroup(List<EshWindowSpec> specs, EshSection section) {
@@ -195,9 +207,9 @@ public final class EshWindowRegistry {
             .comparingInt(EshWindowSpec::sortOrder)
             .thenComparing(s -> s.title().getString(), String.CASE_INSENSITIVE_ORDER));
         for (EshWindowSpec spec : sorted) {
-            String gid = spec.groupId().isBlank() ? spec.registryKey() : spec.groupId();
+            String gid = spec.groupId().trim().isEmpty() ? spec.registryKey() : spec.groupId();
             buckets.computeIfAbsent(gid, k -> new ArrayList<>()).add(spec);
-            titles.putIfAbsent(gid, spec.groupId().isBlank() ? spec.title().getString() : spec.groupTitle());
+            titles.putIfAbsent(gid, spec.groupId().trim().isEmpty() ? spec.title().getString() : spec.groupTitle());
         }
         // Group order = lowest sortOrder in the group (then title). Not A–Z — ESS uses stack order.
         List<Map.Entry<String, List<EshWindowSpec>>> entries = new ArrayList<>(buckets.entrySet());

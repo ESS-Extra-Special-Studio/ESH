@@ -1,12 +1,12 @@
 package uk.co.extraspecialstudio.esh;
 
-import com.mojang.logging.LogUtils;
+import org.apache.logging.log4j.LogManager;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.loading.FMLEnvironment;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.Logger;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.config.ModConfig;
 import uk.co.extraspecialstudio.esh.api.EshApi;
@@ -24,7 +24,7 @@ import uk.co.extraspecialstudio.esh.json.EshJsonWindowLoader;
 @Mod(EshMod.MOD_ID)
 public final class EshMod {
     public static final String MOD_ID = "extraspecialhub";
-    public static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogManager.getLogger();
 
     public EshMod() {
         IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();

@@ -5,11 +5,11 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.mojang.logging.LogUtils;
+import org.apache.logging.log4j.LogManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screen.Screen;
 import net.minecraftforge.fml.loading.FMLPaths;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.Logger;
 import uk.co.extraspecialstudio.esh.api.EshApi;
 import uk.co.extraspecialstudio.esh.api.EshSection;
 import uk.co.extraspecialstudio.esh.api.EshWindowSpec;
@@ -34,7 +34,7 @@ import java.util.List;
  * </ul>
  */
 public final class EshJsonWindowLoader {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
 
     private EshJsonWindowLoader() {
@@ -46,13 +46,13 @@ public final class EshJsonWindowLoader {
             Files.createDirectories(dir);
             Path example = dir.resolve("_example_window.json");
             if (!Files.exists(example)) {
-                Files.writeString(example, exampleJson());
+                Files.write(example, exampleJson().getBytes(java.nio.charset.StandardCharsets.UTF_8));
             }
         } catch (IOException e) {
             LOGGER.warn("Could not create ESH windows config dir", e);
             return;
         }
-        try (var stream = Files.list(dir)) {
+        try (java.util.stream.Stream<Path> stream = Files.list(dir)) {
             stream.filter(p -> p.getFileName().toString().endsWith(".json"))
                 .filter(p -> !p.getFileName().toString().startsWith("_"))
                 .forEach(EshJsonWindowLoader::loadFile);
@@ -95,9 +95,9 @@ public final class EshJsonWindowLoader {
             .sortOrder(sortOrder)
             .group(groupId, groupTitle);
         String iconPath = str(o, "icon", "");
-        if (!iconPath.isBlank()) {
+        if (!iconPath.trim().isEmpty()) {
             try {
-                b.icon(new net.minecraft.resources.ResourceLocation(iconPath));
+                b.icon(new net.minecraft.util.ResourceLocation(iconPath));
             } catch (Exception ignored) {
             }
         }
@@ -114,7 +114,8 @@ public final class EshJsonWindowLoader {
             b.factory(parent -> {
                 Minecraft mc = Minecraft.getInstance();
                 if (mc.player != null) {
-                    mc.player.connection.sendCommand(cmd.startsWith("/") ? cmd.substring(1) : cmd);
+                    String line = cmd.startsWith("/") ? cmd : "/" + cmd;
+                    mc.player.chat(line);
                 }
                 return parent;
             });
@@ -134,8 +135,8 @@ public final class EshJsonWindowLoader {
             Class<?> clazz = Class.forName(className);
             Constructor<?> ctor = clazz.getConstructor(Screen.class);
             Object inst = ctor.newInstance(parent);
-            if (inst instanceof Screen screen) {
-                return screen;
+            if (inst instanceof Screen) {
+                return (Screen) inst;
             }
         } catch (Exception e) {
             LOGGER.warn("Failed to open screenClass {}", className, e);
@@ -156,20 +157,19 @@ public final class EshJsonWindowLoader {
     }
 
     private static String exampleJson() {
-        return """
-            {
-              "modId": "example_pack",
-              "windowId": "readme",
-              "title": "Example JSON Window",
-              "section": "MODS",
-              "author": "Pack Author",
-              "subtitle": "Loaded from config/extraspecialhub/windows",
-              "docs": [
-                "Rename this file (drop the leading _) to enable it.",
-                "Use docs[], runCommand, or screenClass (Screen(Screen) ctor).",
-                "Java mods should prefer EshApi.registerModWindow(...)."
-              ]
-            }
-            """;
+        return "{\n"
+            + "  \"modId\": \"example_pack\",\n"
+            + "  \"windowId\": \"readme\",\n"
+            + "  \"title\": \"Example JSON Window\",\n"
+            + "  \"section\": \"MODS\",\n"
+            + "  \"author\": \"Pack Author\",\n"
+            + "  \"subtitle\": \"Loaded from config/extraspecialhub/windows\",\n"
+            + "  \"docs\": [\n"
+            + "    \"Rename this file (drop the leading _) to enable it.\",\n"
+            + "    \"Use docs[], runCommand, or screenClass (Screen(Screen) ctor).\",\n"
+            + "    \"Java mods should prefer EshApi.registerModWindow(...).\"\n"
+            + "  ]\n"
+            + "}\n";
     }
 }
+

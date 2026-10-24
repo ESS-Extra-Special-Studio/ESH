@@ -1,25 +1,25 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.KeyMapping;
+import net.minecraft.client.util.InputMappings;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.server.packs.resources.ResourceManagerReloadListener;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.Widget;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.resources.IReloadableResourceManager;
+import net.minecraft.resources.IResourceManagerReloadListener;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
-import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.client.event.GuiOpenEvent;
+import net.minecraftforge.client.event.GuiScreenEvent;
 import net.minecraftforge.client.settings.KeyConflictContext;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import org.lwjgl.glfw.GLFW;
 import uk.co.extraspecialstudio.esh.EshMod;
-import uk.co.extraspecialstudio.esh.api.EshOwnsHubNav;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscUiCue;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscButtons;
@@ -29,10 +29,10 @@ import uk.co.extraspecialstudio.extraspecial.esc.ui.EscUiStyle;
 
 @Mod.EventBusSubscriber(modid = EshMod.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public final class EshClientEvents {
-    public static final KeyMapping OPEN_HUB = new KeyMapping(
+    public static final KeyBinding OPEN_HUB = new KeyBinding(
         "key.extraspecialhub.open",
         KeyConflictContext.UNIVERSAL,
-        InputConstants.Type.KEYSYM,
+        InputMappings.Type.KEYSYM,
         GLFW.GLFW_KEY_F9,
         "key.categories.extraspecialhub"
     );
@@ -44,16 +44,19 @@ public final class EshClientEvents {
     }
 
     public static void register(IEventBus modBus) {
-        modBus.addListener(EshClientEvents::onRegisterKeys);
-        modBus.addListener(EshClientEvents::onRegisterReloadListeners);
+        modBus.addListener(EshClientEvents::onClientSetup);
     }
 
-    private static void onRegisterKeys(RegisterKeyMappingsEvent event) {
-        event.register(OPEN_HUB);
-    }
-
-    private static void onRegisterReloadListeners(RegisterClientReloadListenersEvent event) {
-        event.registerReloadListener((ResourceManagerReloadListener) manager -> EshModLogoResolver.clearCache());
+    private static void onClientSetup(FMLClientSetupEvent event) {
+        event.enqueueWork(() -> {
+            ClientRegistry.registerKeyBinding(OPEN_HUB);
+            Minecraft mc = Minecraft.getInstance();
+            if (mc != null && mc.getResourceManager() instanceof IReloadableResourceManager) {
+                ((IReloadableResourceManager) mc.getResourceManager()).registerReloadListener(
+                    (IResourceManagerReloadListener) manager -> EshModLogoResolver.clearCache()
+                );
+            }
+        });
     }
 
     @SubscribeEvent
@@ -76,8 +79,8 @@ public final class EshClientEvents {
      * Propagate “opened from hub” onto child screens (CTL S2C panel, nested menus, etc.).
      */
     @SubscribeEvent
-    public static void onScreenOpening(ScreenEvent.Opening event) {
-        Screen next = event.getNewScreen();
+    public static void onScreenOpening(GuiOpenEvent event) {
+        Screen next = event.getGui();
         if (next == null || next instanceof EshHubScreen) {
             return;
         }
@@ -89,15 +92,16 @@ public final class EshClientEvents {
 
     /**
      * Inject {@code ← Hub} on every hosted mod menu so Close-to-game screens can still return to ESH.
-     * Screens that own their own back nav opt out via {@link EshOwnsHubNav} / {@link EscOwnsBackNav}.
+     * Screens that own their own back nav opt out via {@link uk.co.extraspecialstudio.esh.api.EshOwnsHubNav} / {@link EscOwnsBackNav}.
      */
     @SubscribeEvent
-    public static void onScreenInit(ScreenEvent.Init.Post event) {
-        Screen screen = event.getScreen();
+    public static void onScreenInit(GuiScreenEvent.InitGuiEvent.Post event) {
+        Screen screen = event.getGui();
         if (screen instanceof EshHubScreen || screen instanceof EscOwnsBackNav || !EshHubSession.isHosted(screen)) {
             return;
         }
-        int[] placement = hubButtonPlacement(screen);
+        java.util.List<Widget> widgets = event.getWidgetList();
+        int[] placement = hubButtonPlacement(screen, widgets);
         EscUiStyle style = EscUiStyle.active(EshMod.MOD_ID);
         Button hub = EscButtons.button(
             EscText.literal("← Hub"),
@@ -108,26 +112,23 @@ public final class EshClientEvents {
             style,
             b -> EshHubSession.openHub()
         );
-        event.addListener(hub);
+        event.addWidget(hub);
     }
 
     /**
      * Align with the hosted screen's top-band Close control: same {@code y} and height, left inset.
      */
-    private static int[] hubButtonPlacement(Screen screen) {
+    private static int[] hubButtonPlacement(Screen screen, java.util.List<Widget> widgets) {
         int topBand = Math.min(56, Math.max(28, screen.height / 8));
-        AbstractWidget anchor = null;
-        for (GuiEventListener child : screen.children()) {
-            if (!(child instanceof AbstractWidget widget)) {
+        Widget anchor = null;
+        for (Widget widget : widgets) {
+            if (widget.y > topBand || widget.getHeight() <= 0) {
                 continue;
             }
-            if (widget.getY() > topBand || widget.getHeight() <= 0) {
+            if (widget.x + widget.getWidth() / 2 < screen.width / 2) {
                 continue;
             }
-            if (widget.getX() + widget.getWidth() / 2 < screen.width / 2) {
-                continue;
-            }
-            if (anchor == null || widget.getX() < anchor.getX()) {
+            if (anchor == null || widget.x < anchor.x) {
                 anchor = widget;
             }
         }
@@ -135,18 +136,18 @@ public final class EshClientEvents {
         int w = HUB_BTN_W;
         int h = anchor != null ? anchor.getHeight() : HUB_BTN_H;
         int x = 4;
-        int y = anchor != null ? anchor.getY() : 8;
+        int y = anchor != null ? anchor.y : 8;
 
-        if (overlapsAny(screen, x, y, w, h, null)) {
+        if (overlapsAny(widgets, x, y, w, h, null)) {
             for (int attempt = 0; attempt < 6; attempt++) {
                 y += h + 4;
-                if (!overlapsAny(screen, x, y, w, h, null)) {
+                if (!overlapsAny(widgets, x, y, w, h, null)) {
                     break;
                 }
             }
         }
 
-        if (overlapsAny(screen, x, y, w, h, null)) {
+        if (overlapsAny(widgets, x, y, w, h, null)) {
             x = 4;
             y = 4;
             h = HUB_BTN_H;
@@ -154,16 +155,16 @@ public final class EshClientEvents {
         return new int[]{x, y, w, h};
     }
 
-    private static boolean overlapsAny(Screen screen, int x, int y, int w, int h, AbstractWidget ignore) {
+    private static boolean overlapsAny(java.util.List<Widget> widgets, int x, int y, int w, int h, Widget ignore) {
         int x1 = x + w;
         int y1 = y + h;
-        for (GuiEventListener child : screen.children()) {
-            if (!(child instanceof AbstractWidget widget) || widget == ignore) {
+        for (Widget widget : widgets) {
+            if (widget == ignore) {
                 continue;
             }
-            int wx1 = widget.getX() + widget.getWidth();
-            int wy1 = widget.getY() + widget.getHeight();
-            if (x < wx1 && x1 > widget.getX() && y < wy1 && y1 > widget.getY()) {
+            int wx1 = widget.x + widget.getWidth();
+            int wy1 = widget.y + widget.getHeight();
+            if (x < wx1 && x1 > widget.x && y < wy1 && y1 > widget.y) {
                 return true;
             }
         }

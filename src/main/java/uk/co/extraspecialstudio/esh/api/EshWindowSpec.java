@@ -1,8 +1,8 @@
 package uk.co.extraspecialstudio.esh.api;
 
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.ResourceLocation;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -13,7 +13,7 @@ import java.util.function.Function;
 public final class EshWindowSpec {
     private final String modId;
     private final String windowId;
-    private final Component title;
+    private final ITextComponent title;
     private final EshSection section;
     private final String author;
     private final Function<Screen, Screen> factory;
@@ -55,7 +55,7 @@ public final class EshWindowSpec {
         return modId + "/" + windowId;
     }
 
-    public Component title() {
+    public ITextComponent title() {
         return title;
     }
 
@@ -76,7 +76,7 @@ public final class EshWindowSpec {
     }
 
     public String groupTitle() {
-        return groupTitle.isBlank() ? title.getString() : groupTitle;
+        return groupTitle.trim().isEmpty() ? title.getString() : groupTitle;
     }
 
     public String subtitle() {
@@ -103,18 +103,18 @@ public final class EshWindowSpec {
         return recommendHint;
     }
 
-    public static Builder builder(String modId, String windowId, Component title) {
+    public static Builder builder(String modId, String windowId, ITextComponent title) {
         return new Builder(modId, windowId, title);
     }
 
     public static Builder builder(String modId, String windowId, String title) {
-        return new Builder(modId, windowId, Component.literal(title));
+        return new Builder(modId, windowId, new net.minecraft.util.text.StringTextComponent(title));
     }
 
     public static final class Builder {
         private final String modId;
         private final String windowId;
-        private final Component title;
+        private final ITextComponent title;
         private EshSection section = EshSection.MODS;
         private String author = "Unknown";
         private Function<Screen, Screen> factory;
@@ -127,7 +127,7 @@ public final class EshWindowSpec {
         private boolean enabled = true;
         private String recommendHint = "";
 
-        private Builder(String modId, String windowId, Component title) {
+        private Builder(String modId, String windowId, ITextComponent title) {
             this.modId = Objects.requireNonNull(modId, "modId");
             this.windowId = Objects.requireNonNull(windowId, "windowId");
             this.title = Objects.requireNonNull(title, "title");
@@ -139,7 +139,7 @@ public final class EshWindowSpec {
         }
 
         public Builder author(String author) {
-            this.author = author == null || author.isBlank() ? "Unknown" : author;
+            this.author = author == null || author.trim().isEmpty() ? "Unknown" : author;
             return this;
         }
 

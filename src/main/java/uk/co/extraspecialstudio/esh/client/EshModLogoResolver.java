@@ -1,10 +1,10 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import com.mojang.blaze3d.platform.NativeImage;
+import net.minecraft.client.renderer.texture.NativeImage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceManager;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.IResourceManager;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.forgespi.language.IModInfo;
 import net.minecraftforge.forgespi.locating.IModFile;
@@ -38,7 +38,7 @@ public final class EshModLogoResolver {
     }
 
     public static ResourceLocation resolve(String modId) {
-        if (modId == null || modId.isBlank()) {
+        if (modId == null || modId.trim().isEmpty()) {
             return FALLBACK;
         }
         Optional<ResourceLocation> hit = CACHE.get(modId);
@@ -50,7 +50,7 @@ public final class EshModLogoResolver {
     }
 
     public static ResourceLocation resolveOrNull(String modId) {
-        if (modId == null || modId.isBlank()) {
+        if (modId == null || modId.trim().isEmpty()) {
             return null;
         }
         Optional<ResourceLocation> hit = CACHE.get(modId);
@@ -81,7 +81,7 @@ public final class EshModLogoResolver {
             return;
         }
         // Defer past the current frame so first paint stays light.
-        mc.tell(() -> {
+        mc.execute(() -> {
             try {
                 Optional<ResourceLocation> packHit = lookupPackTextures(modId);
                 if (packHit.isPresent()) {
@@ -132,14 +132,8 @@ public final class EshModLogoResolver {
         try {
             return ModList.get().getModContainerById(modId).flatMap(container -> {
                 IModInfo info = container.getModInfo();
-                String logoFile = info.getLogoFile().orElse(null);
-                if (logoFile == null || logoFile.isBlank()) {
-                    Object prop = info.getModProperties().get("logoFile");
-                    if (prop instanceof String s && !s.isBlank()) {
-                        logoFile = s;
-                    }
-                }
-                if (logoFile == null || logoFile.isBlank()) {
+                String logoFile = logoFileProperty(info);
+                if (logoFile == null || logoFile.trim().isEmpty()) {
                     return Optional.empty();
                 }
                 String normalized = logoFile.replace('\\', '/');
@@ -165,20 +159,16 @@ public final class EshModLogoResolver {
         try {
             return ModList.get().getModContainerById(modId).map(container -> {
                 IModInfo info = container.getModInfo();
-                String logoFile = info.getLogoFile().orElse(null);
-                if (logoFile == null || logoFile.isBlank()) {
-                    Object prop = info.getModProperties().get("logoFile");
-                    if (prop instanceof String s && !s.isBlank()) {
-                        logoFile = s;
-                    }
-                }
-                if (logoFile == null || logoFile.isBlank()) {
+                String logoFile = logoFileProperty(info);
+                if (logoFile == null || logoFile.trim().isEmpty()) {
                     return null;
                 }
                 String normalized = logoFile.replace('\\', '/');
-                IModFile modFile = info.getOwningFile().getFile();
-                String[] parts = normalized.split("/");
-                Path path = modFile.findResource(parts);
+                IModFile modFile = resolveModFile(modId, info);
+                if (modFile == null) {
+                    return null;
+                }
+                Path path = modFile.findResource(normalized);
                 if (path == null || !Files.exists(path)) {
                     return null;
                 }
@@ -191,6 +181,34 @@ public final class EshModLogoResolver {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private static IModFile resolveModFile(String modId, IModInfo info) {
+        try {
+            Object fileInfo = ModList.get().getModFileById(modId);
+            if (fileInfo != null) {
+                java.lang.reflect.Method getFile = fileInfo.getClass().getMethod("getFile");
+                Object file = getFile.invoke(fileInfo);
+                if (file instanceof IModFile) {
+                    return (IModFile) file;
+                }
+            }
+        } catch (Exception ignored) {
+            // fall through
+        }
+        try {
+            Object owning = info.getOwningFile();
+            if (owning != null) {
+                java.lang.reflect.Method getFile = owning.getClass().getMethod("getFile");
+                Object file = getFile.invoke(owning);
+                if (file instanceof IModFile) {
+                    return (IModFile) file;
+                }
+            }
+        } catch (Exception ignored) {
+            // ignore
+        }
+        return null;
     }
 
     private static Optional<ResourceLocation> uploadDynamic(String modId, byte[] bytes) {
@@ -219,11 +237,19 @@ public final class EshModLogoResolver {
             if (mc == null) {
                 return false;
             }
-            ResourceManager rm = mc.getResourceManager();
-            return rm.getResource(rl).isPresent();
+            IResourceManager rm = mc.getResourceManager();
+            return rm.hasResource(rl);
         } catch (Exception e) {
             return false;
         }
+    }
+
+    private static String logoFileProperty(IModInfo info) {
+        Object prop = info.getModProperties().get("logoFile");
+        if (prop instanceof String && !((String) prop).trim().isEmpty()) {
+            return (String) prop;
+        }
+        return null;
     }
 
     private static ResourceLocation tryParse(String path) {

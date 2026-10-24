@@ -1,8 +1,8 @@
 package uk.co.extraspecialstudio.esh.docs;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.gui.screen.Screen;
+import uk.co.extraspecialstudio.extraspecial.esc.ui.EscGraphics;
+import net.minecraft.util.ResourceLocation;
 import uk.co.extraspecialstudio.esh.api.EshApi;
 import uk.co.extraspecialstudio.esh.api.EshSection;
 import uk.co.extraspecialstudio.esh.api.EshWindowSpec;
@@ -38,7 +38,7 @@ public final class EssDocsWindows {
     }
 
     public static void registerBuiltins() {
-        List<String> overviewLines = List.of(
+        List<String> overviewLines = java.util.Arrays.asList(
             "One sentence",
             "ESC is the GUI OS, ESH is the start menu, ESL is libc, ESG is the optional IDE.",
             "",
@@ -72,7 +72,7 @@ public final class EssDocsWindows {
             .factory(parent -> openDoc(parent, "ESS Overview", overviewLines))
             .build());
 
-        register("esl", "ESL", "Backend foundation", "esl", "ESL", 10, List.of(
+        register("esl", "ESL", "Backend foundation", "esl", "ESL", 10, java.util.Arrays.asList(
             "What it is",
             "ESL — Extra Special LIB (modId: extraspeciallib).",
             "The shared backend foundation for the ES stack. No GUI, no screens, no render loops.",
@@ -108,7 +108,7 @@ public final class EssDocsWindows {
             "  isBlank(s) · nullToEmpty(s) · emptyToNull(s)"
         ));
 
-        register("esc", "ESC", "GUI framework", "esc", "ESC", 20, List.of(
+        register("esc", "ESC", "GUI framework", "esc", "ESC", 20, java.util.Arrays.asList(
             "What it is",
             "ESC — Extra Special Core (modId: extraspecialcore).",
             "The GUI / presentation framework for Extra Special Studio. Layouts, panels, buttons, themes, sound cues, transitions, hub layout primitives.",
@@ -160,7 +160,7 @@ public final class EssDocsWindows {
             "  ESG (extraspecialgui) — optional authoring: GUI Builder, Asset Library, Profiles"
         ));
 
-        register("esg", "ESG", "Visual GUI authoring", "esg", "ESG", 26, List.of(
+        register("esg", "ESG", "Visual GUI authoring", "esg", "ESG", 26, java.util.Arrays.asList(
             "What it is",
             "ESG — Extra Special GUI (modId: extraspecialgui).",
             "Optional visual authoring layer for ESC. How you build GUIs — not required to play mods that use ESC profiles.",
@@ -178,7 +178,7 @@ public final class EssDocsWindows {
             "ESG → ESC (required). ESH discovers ESG when present. ESC never depends on ESG or ESH."
         ));
 
-        register("quality_motion", "Quality & Motion", "Q / Motion / BG", "esc", "ESC", 21, List.of(
+        register("quality_motion", "Quality & Motion", "Q / Motion / BG", "esc", "ESC", 21, java.util.Arrays.asList(
             "What it is",
             "Client visual budget knobs on the ESH footer. They change how much ESC draws — not your layout, colours, or which menus exist.",
             "",
@@ -201,7 +201,7 @@ public final class EssDocsWindows {
             "ESH Theme Tuner can raise CRT / glow / shadow knobs; Q still decides whether they draw."
         ));
 
-        register("esh", "ESH", "F9 hub layer", "esh", "ESH", 30, List.of(
+        register("esh", "ESH", "F9 hub layer", "esh", "ESH", 30, java.util.Arrays.asList(
             "What it is",
             "ESH — Extra Special Hub (modId: extraspecialhub).",
             "The hub layer of ESS: one hotkey that organises studio menus, docs, methods, instructions, and tool hubs — and lets other developers plug their own mod menus into the same place.",
@@ -272,7 +272,7 @@ public final class EssDocsWindows {
             "    .build());"
         ));
 
-        register("integrators", "For Mod Authors", "Plug into the stack", "ess", "ESS", 1, List.of(
+        register("integrators", "For Mod Authors", "Plug into the stack", "ess", "ESS", 1, java.util.Arrays.asList(
             "What this page is",
             "Short integrator guide: how another mod uses ESL / ESC / ESH without fighting studio naming.",
             "",
@@ -325,7 +325,7 @@ public final class EssDocsWindows {
             .build());
 
         // Reserved slots only — one Roadmap leaf, not separate ESA/ESN installable pages.
-        register("roadmap", "Roadmap", "ESA · ESN · reserved slots", "ess", "ESS", 2, List.of(
+        register("roadmap", "Roadmap", "ESA · ESN · reserved slots", "ess", "ESS", 2, java.util.Arrays.asList(
             "Status",
             "Shipped: ESL → ESC → { ESH, ESG }.",
             "Reserved (not shipping): ESA, ESN.",
@@ -373,7 +373,7 @@ public final class EssDocsWindows {
         private int scrollPx;
         private int cachedMaxW = -1;
         private int cachedContentH = -1;
-        private List<List<String>> cachedWrapped = List.of();
+        private List<List<String>> cachedWrapped = java.util.Collections.emptyList();
 
         private DocScreen(Screen parent, String title, List<String> lines, ResourceLocation badge) {
             super(EscText.literal(title), parent, EscTransition.TERMINAL_BOOT);
@@ -386,7 +386,7 @@ public final class EssDocsWindows {
         }
 
         @Override
-        protected void renderPage(GuiGraphics g, EscRect panel, float alpha) {
+        protected void renderPage(EscGraphics g, EscRect panel, float alpha) {
             int pad = 12;
             int maxW = panel.width() - pad * 2;
             int hintH = font.lineHeight + 6;
@@ -447,8 +447,8 @@ public final class EssDocsWindows {
             int h = font.lineHeight + 4 + 10 + badgeAreaH();
             java.util.ArrayList<List<String>> wrapped = new java.util.ArrayList<>();
             for (String raw : lines) {
-                if (raw == null || raw.isBlank()) {
-                    wrapped.add(List.of());
+                if (raw == null || raw.trim().isEmpty()) {
+                    wrapped.add(java.util.Collections.emptyList());
                     h += lineH / 2;
                     continue;
                 }

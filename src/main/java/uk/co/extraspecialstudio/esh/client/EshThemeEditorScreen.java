@@ -1,7 +1,8 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import net.minecraft.client.gui.screen.Screen;
+import uk.co.extraspecialstudio.extraspecial.esc.ui.EscGraphics;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscUiCue;
 import uk.co.extraspecialstudio.extraspecial.esc.theme.EscEffectPreset;
@@ -117,7 +118,7 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
     }
 
     @Override
-    protected void renderPage(GuiGraphics g, EscRect panel, float alpha) {
+    protected void renderPage(EscGraphics g, EscRect panel, float alpha) {
         // Unused — full render overridden below.
     }
 
@@ -183,18 +184,18 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
         float glow = working.glowStrength();
         float crt = working.crtIntensity();
         switch (which) {
-            case 0 -> {
+            case 0:
                 shadow += 0.1f;
                 if (shadow > 1.001f) shadow = 0f;
-            }
-            case 1 -> {
+                break;
+            case 1:
                 glow += 0.1f;
                 if (glow > 1.001f) glow = 0f;
-            }
-            default -> {
+                break;
+            default:
                 crt += 0.1f;
                 if (crt > 1.001f) crt = 0f;
-            }
+                break;
         }
         working = working.withPresentation(
             working.panelOpacity(), working.frameStyle(), shadow, glow, crt, working.motionScale()
@@ -257,8 +258,9 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+    public void render(MatrixStack pose, int mouseX, int mouseY, float partialTick) {
+        EscGraphics graphics = new EscGraphics(pose);
+        renderBackground(pose);
         setStyle(EscUiStyle.fromTheme(working));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, working);
@@ -296,6 +298,6 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
             y += font.lineHeight + 2;
         }
         EscCrtLayer.render(graphics, content, working);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.render(pose, mouseX, mouseY, partialTick);
     }
 }

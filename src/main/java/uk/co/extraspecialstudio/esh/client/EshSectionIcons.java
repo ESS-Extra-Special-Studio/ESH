@@ -1,6 +1,6 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ResourceLocation;
 import uk.co.extraspecialstudio.esh.api.EshSection;
 
 /**
@@ -12,12 +12,17 @@ public final class EshSectionIcons {
 
     public static ResourceLocation forSection(EshSection section) {
         if (section == null) {
-            return ResourceLocation.fromNamespaceAndPath("minecraft", "textures/misc/unknown_pack.png");
+            return new ResourceLocation("minecraft", "textures/misc/unknown_pack.png");
         }
-        return switch (section) {
-            case ESS -> ResourceLocation.fromNamespaceAndPath("extraspecialhub", "textures/gui/ess_badge.png");
-            case UTILITY -> ResourceLocation.fromNamespaceAndPath("minecraft", "textures/item/iron_pickaxe.png");
-            case MODS -> ResourceLocation.fromNamespaceAndPath("minecraft", "textures/item/comparator.png");
-        };
+        switch (section) {
+            case ESS:
+                return new ResourceLocation("extraspecialhub", "textures/gui/ess_badge.png");
+            case UTILITY:
+                return new ResourceLocation("minecraft", "textures/item/iron_pickaxe.png");
+            case MODS:
+                return new ResourceLocation("minecraft", "textures/item/comparator.png");
+            default:
+                return new ResourceLocation("minecraft", "textures/misc/unknown_pack.png");
+        }
     }
 }

@@ -1,9 +1,9 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
-import com.mojang.blaze3d.platform.InputConstants;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import org.lwjgl.glfw.GLFW;
+import net.minecraft.client.gui.widget.button.Button;
+import net.minecraft.client.gui.screen.Screen;
 import uk.co.extraspecialstudio.esh.api.EshSection;
 import uk.co.extraspecialstudio.esh.api.EshWindowSpec;
 import uk.co.extraspecialstudio.esh.EshMod;
@@ -17,6 +17,7 @@ import uk.co.extraspecialstudio.extraspecial.esc.theme.EscThemeManager;
 import uk.co.extraspecialstudio.extraspecial.esc.theme.EscThemeResolved;
 import uk.co.extraspecialstudio.extraspecial.esc.theme.EscThemeSwatch;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscBackground;
+import uk.co.extraspecialstudio.extraspecial.esc.ui.EscGraphics;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscButtonBar;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscColorPickerScreen;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.EscCrtLayer;
@@ -108,7 +109,7 @@ public final class EshHubScreen extends EscScreen {
         hubCtx.setCuratedTreeNav("ESS"::equals);
         hubCtx.setLayoutId(layoutId);
         hubCtx.setSectionIndex(savedSectionIndex);
-        if (!savedExpandedGroupId.isBlank()) {
+        if (!savedExpandedGroupId.trim().isEmpty()) {
             hubCtx.setExpandedGroupId(savedExpandedGroupId);
         }
         refreshHeaderTips();
@@ -238,7 +239,28 @@ public final class EshHubScreen extends EscScreen {
         }
     }
 
-    private record FooterBtn(String label, net.minecraft.client.gui.components.Button.OnPress onPress, EscColorRole colorRole) {
+    private static final class FooterBtn {
+        private final String label;
+        private final Button.IPressable onPress;
+        private final EscColorRole colorRole;
+
+        private FooterBtn(String label, Button.IPressable onPress, EscColorRole colorRole) {
+            this.label = label;
+            this.onPress = onPress;
+            this.colorRole = colorRole;
+        }
+
+        private String label() {
+            return label;
+        }
+
+        private Button.IPressable onPress() {
+            return onPress;
+        }
+
+        private EscColorRole colorRole() {
+            return colorRole;
+        }
     }
 
     private void openColorPicker(EscColorRole role) {
@@ -268,7 +290,7 @@ public final class EshHubScreen extends EscScreen {
     }
 
     private void seedPlayerSwatchesFromBase() {
-        var base = EscThemeManager.resolveBase(EshMod.MOD_ID);
+        uk.co.extraspecialstudio.extraspecial.esc.theme.EscTheme base = EscThemeManager.resolveBase(EshMod.MOD_ID);
         EscThemeConfigs.PLAYER_BORDER.set(closestSwatch(base.borderArgb(), true).ordinal());
         EscThemeConfigs.PLAYER_TEXT.set(closestSwatch(base.textTitleRgb(), false).ordinal());
         EscThemeConfigs.PLAYER_ACCENT.set(closestAccent(base.accentArgb()).ordinal());
@@ -316,22 +338,22 @@ public final class EshHubScreen extends EscScreen {
     private void refreshHeaderTips() {
         EscHubSection sel = hubCtx.selectedSection();
         if (sel != null && EshSection.MODS.name().equals(sel.id())) {
-            hubCtx.setHeaderTips(List.of(
+            hubCtx.setHeaderTips(java.util.Arrays.asList(
                 "Mods — gameplay and settings menus. Search / Filter above the list.",
                 "Studio utilities (CTL, WhatLIB) live under Utility."
             ));
         } else if (sel != null && EshSection.UTILITY.name().equals(sel.id())) {
-            hubCtx.setHeaderTips(List.of(
+            hubCtx.setHeaderTips(java.util.Arrays.asList(
                 "Utility — ops & power-user tools. Search / Filter above the list.",
                 "Grey badges are recommended studio tools that are not installed yet."
             ));
         } else if (EscThemeManager.isPlayerThemeLocked()) {
-            hubCtx.setHeaderTips(List.of(
+            hubCtx.setHeaderTips(java.util.Arrays.asList(
                 "Pack/server theme override is locked — Border/Text/Accent are disabled here.",
                 "Layout, Q, Motion, and BG stay personal on this PC only."
             ));
         } else {
-            hubCtx.setHeaderTips(List.of(
+            hubCtx.setHeaderTips(java.util.Arrays.asList(
                 "Layout / colours / Q / Motion / BG save to this PC only — never the server.",
                 "Apply to: ESH = F9 only · Apply to: ALL = every ESC UI on this machine."
             ));
@@ -361,7 +383,7 @@ public final class EshHubScreen extends EscScreen {
             // ESS stays curated — no search chrome.
             return EshWindowRegistry.get().groupsForSection(section, EshModsListMode.BY_AUTHOR, "");
         } catch (IllegalArgumentException e) {
-            return List.of();
+            return java.util.Collections.emptyList();
         }
     }
 
@@ -369,12 +391,12 @@ public final class EshHubScreen extends EscScreen {
         rememberSection();
         EshHubSession.rememberHubState(savedSectionIndex, savedExpandedGroupId);
         if (leaf != null && !leaf.enabled()) {
-            String hint = leaf.recommendHint().isBlank()
+            String hint = leaf.recommendHint().trim().isEmpty()
                 ? ("Install " + leaf.title() + " to unlock this tool.")
                 : leaf.recommendHint();
-            hubCtx.setHeaderTips(List.of(hint, "This badge stays until the mod is installed."));
+            hubCtx.setHeaderTips(java.util.Arrays.asList(hint, "This badge stays until the mod is installed."));
             if (minecraft != null && minecraft.player != null) {
-                minecraft.player.displayClientMessage(net.minecraft.network.chat.Component.literal(hint), true);
+                minecraft.player.displayClientMessage(new net.minecraft.util.text.StringTextComponent(hint), true);
             }
             return;
         }
@@ -383,12 +405,12 @@ public final class EshHubScreen extends EscScreen {
             return;
         }
         if (!spec.enabled()) {
-            String hint = spec.recommendHint().isBlank()
+            String hint = spec.recommendHint().trim().isEmpty()
                 ? ("Install " + spec.title().getString() + " to unlock this tool.")
                 : spec.recommendHint();
-            hubCtx.setHeaderTips(List.of(hint, "This badge stays until the mod is installed."));
+            hubCtx.setHeaderTips(java.util.Arrays.asList(hint, "This badge stays until the mod is installed."));
             if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(net.minecraft.network.chat.Component.literal(hint), true);
+                minecraft.player.displayClientMessage(new net.minecraft.util.text.StringTextComponent(hint), true);
             }
             return;
         }
@@ -451,8 +473,9 @@ public final class EshHubScreen extends EscScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+    public void render(MatrixStack pose, int mouseX, int mouseY, float partialTick) {
+        EscGraphics graphics = new EscGraphics(pose);
+        renderBackground(pose);
         setStyle(EscUiStyle.active(EshMod.MOD_ID));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, style.theme());
@@ -472,7 +495,7 @@ public final class EshHubScreen extends EscScreen {
         int lip = (0xAA << 24) | (style.accentColor() & 0xFFFFFF);
         graphics.fill(footerBounds.x(), footerBounds.y(), footerBounds.right(), footerBounds.y() + 2, lip);
         EscCrtLayer.render(graphics, content, style.theme());
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.render(pose, mouseX, mouseY, partialTick);
     }
 
     @Override
@@ -483,8 +506,8 @@ public final class EshHubScreen extends EscScreen {
                 Button b = footerButtons.get(i);
                 FooterBtn def = footerDefs.get(i);
                 if (def.colorRole() != null
-                    && mouseX >= b.getX() && mouseX < b.getX() + b.getWidth()
-                    && mouseY >= b.getY() && mouseY < b.getY() + b.getHeight()) {
+                    && mouseX >= b.x && mouseX < b.x + b.getWidth()
+                    && mouseY >= b.y && mouseY < b.y + b.getHeight()) {
                     cycleSwatch(def.colorRole());
                     return true;
                 }
@@ -534,13 +557,13 @@ public final class EshHubScreen extends EscScreen {
                 }
                 return true;
             }
-            if (keyCode == InputConstants.KEY_DOWN || keyCode == InputConstants.KEY_S) {
+            if (keyCode == GLFW.GLFW_KEY_DOWN || keyCode == GLFW.GLFW_KEY_S) {
                 if (enterFooterFocus(0)) {
                     EscSound.play(EscUiCue.MOVE);
                     return true;
                 }
             }
-            if (keyCode == InputConstants.KEY_UP || keyCode == InputConstants.KEY_W) {
+            if (keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_W) {
                 EscSound.play(EscUiCue.UNAVAILABLE);
                 return true;
             }
@@ -549,27 +572,27 @@ public final class EshHubScreen extends EscScreen {
     }
 
     private boolean keyPressedFooter(int keyCode) {
-        if (keyCode == InputConstants.KEY_UP || keyCode == InputConstants.KEY_W) {
+        if (keyCode == GLFW.GLFW_KEY_UP || keyCode == GLFW.GLFW_KEY_W) {
             leaveFooterFocus();
             EscSound.play(EscUiCue.MOVE);
             return true;
         }
-        if (keyCode == InputConstants.KEY_DOWN || keyCode == InputConstants.KEY_S) {
+        if (keyCode == GLFW.GLFW_KEY_DOWN || keyCode == GLFW.GLFW_KEY_S) {
             EscSound.play(EscUiCue.UNAVAILABLE);
             return true;
         }
-        if (keyCode == InputConstants.KEY_LEFT || keyCode == InputConstants.KEY_A) {
+        if (keyCode == GLFW.GLFW_KEY_LEFT || keyCode == GLFW.GLFW_KEY_A) {
             cycleFooterFocus(-1);
             return true;
         }
-        if (keyCode == InputConstants.KEY_RIGHT || keyCode == InputConstants.KEY_D) {
+        if (keyCode == GLFW.GLFW_KEY_RIGHT || keyCode == GLFW.GLFW_KEY_D) {
             cycleFooterFocus(1);
             return true;
         }
-        if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_SPACE) {
+        if (keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_SPACE) {
             if (footerFocus >= 0 && footerFocus < footerButtons.size()) {
                 Button b = footerButtons.get(footerFocus);
-                return b.mouseClicked(b.getX() + b.getWidth() * 0.5, b.getY() + b.getHeight() * 0.5, 0);
+                return b.mouseClicked(b.x + b.getWidth() * 0.5, b.y + b.getHeight() * 0.5, 0);
             }
             return true;
         }
@@ -589,6 +612,7 @@ public final class EshHubScreen extends EscScreen {
 
     private void leaveFooterFocus() {
         footerFocus = -1;
+        clearFooterButtonFocus();
         setFocused(null);
         if (hubCtx != null && hubCtx.selectedSection() != null) {
             // Land on last accordion row when coming up from footer.
@@ -608,8 +632,20 @@ public final class EshHubScreen extends EscScreen {
     private void applyFooterFocus(int index) {
         footerFocus = index;
         Button b = footerButtons.get(index);
+        clearFooterButtonFocus();
         setFocused(b);
-        b.setFocused(true);
+        // Widget.setFocused(boolean) is protected on 1.19.2; changeFocus toggles the flag.
+        if (!b.isFocused()) {
+            b.changeFocus(true);
+        }
+    }
+
+    private void clearFooterButtonFocus() {
+        for (Button button : footerButtons) {
+            if (button.isFocused()) {
+                button.changeFocus(false);
+            }
+        }
     }
 
     @Override

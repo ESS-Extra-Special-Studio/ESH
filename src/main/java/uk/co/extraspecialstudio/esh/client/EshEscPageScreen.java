@@ -1,9 +1,10 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import com.mojang.blaze3d.platform.InputConstants;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
+import com.mojang.blaze3d.matrix.MatrixStack;
+import org.lwjgl.glfw.GLFW;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.util.text.ITextComponent;
+import uk.co.extraspecialstudio.extraspecial.esc.ui.EscGraphics;
 import uk.co.extraspecialstudio.esh.EshMod;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscUiCue;
@@ -29,11 +30,11 @@ public abstract class EshEscPageScreen extends EscScreen {
     protected EscRect panelBounds = new EscRect(0, 0, 0, 0);
     protected EscRect footerBounds = new EscRect(0, 0, 0, 0);
 
-    protected EshEscPageScreen(Component title, Screen parent) {
+    protected EshEscPageScreen(ITextComponent title, Screen parent) {
         this(title, parent, EscTransition.FADE);
     }
 
-    protected EshEscPageScreen(Component title, Screen parent, EscTransition open) {
+    protected EshEscPageScreen(ITextComponent title, Screen parent, EscTransition open) {
         super(title, EscUiStyle.active(EshMod.MOD_ID));
         this.parent = parent;
         openTransition.restart(open == null ? EscTransition.FADE : open);
@@ -87,7 +88,7 @@ public abstract class EshEscPageScreen extends EscScreen {
     protected void placeFooterLeft(EscRect[] slots) {
     }
 
-    protected abstract void renderPage(GuiGraphics g, EscRect panel, float alpha);
+    protected abstract void renderPage(EscGraphics g, EscRect panel, float alpha);
 
     @Override
     public void tick() {
@@ -96,8 +97,9 @@ public abstract class EshEscPageScreen extends EscScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+    public void render(MatrixStack pose, int mouseX, int mouseY, float partialTick) {
+        EscGraphics graphics = new EscGraphics(pose);
+        renderBackground(pose);
         setStyle(EscUiStyle.active(EshMod.MOD_ID));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, style.theme());
@@ -119,7 +121,7 @@ public abstract class EshEscPageScreen extends EscScreen {
         renderPage(graphics, panel, alpha);
         EscPanel.renderPanel(graphics, footerBounds, style);
         EscCrtLayer.render(graphics, content, style.theme());
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.render(pose, mouseX, mouseY, partialTick);
     }
 
     private static EscRect scaledRect(EscRect base, float scale) {
@@ -135,7 +137,7 @@ public abstract class EshEscPageScreen extends EscScreen {
 
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
-        if (keyCode == InputConstants.KEY_ESCAPE || keyCode == InputConstants.KEY_BACKSPACE) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
             EscSound.play(EscUiCue.BACK);
             onClose();
             return true;

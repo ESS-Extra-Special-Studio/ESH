@@ -11,18 +11,28 @@ public enum EshSection {
     MODS;
 
     public String displayName() {
-        return switch (this) {
-            case ESS -> "ESS";
-            case UTILITY -> "Utility";
-            case MODS -> "Mods";
-        };
+        switch (this) {
+            case ESS:
+                return "ESS";
+            case UTILITY:
+                return "Utility";
+            case MODS:
+                return "Mods";
+            default:
+                return name();
+        }
     }
 
     public String subtitle() {
-        return switch (this) {
-            case ESS -> "Studio docs & stack";
-            case UTILITY -> "Ops & tools · search";
-            case MODS -> "Installed mod menus";
-        };
+        switch (this) {
+            case ESS:
+                return "Studio docs & stack";
+            case UTILITY:
+                return "Ops & tools · search";
+            case MODS:
+                return "Installed mod menus";
+            default:
+                return "";
+        }
     }
 }

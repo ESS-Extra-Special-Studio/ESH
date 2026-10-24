@@ -1,7 +1,7 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screen.Screen;
+import uk.co.extraspecialstudio.extraspecial.esc.ui.EscGraphics;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSounds;
 import uk.co.extraspecialstudio.extraspecial.esc.theme.EscComponentSkin;
@@ -65,29 +65,44 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
     }
 
     private String pageLabel() {
-        return switch (page) {
-            case 0 -> "Frames";
-            case 1 -> "Focus + Skins";
-            case 2 -> "Effects";
-            case 3 -> "Live chrome";
-            default -> "Menu bank";
-        };
-    }
-
-    @Override
-    protected void renderPage(GuiGraphics g, EscRect panel, float alpha) {
-        EscTypography.draw(g, font, pageLabel().toUpperCase() + " — click Page to cycle",
-            panel.x() + 10, panel.y() + 10, style, EscTypeRole.META, panel.width() - 20, alpha);
         switch (page) {
-            case 0 -> renderFrames(g, panel, alpha);
-            case 1 -> renderFocusSkins(g, panel, alpha);
-            case 2 -> renderEffects(g, panel, alpha);
-            case 3 -> renderLive(g, panel, alpha);
-            default -> renderMenuBank(g, panel, alpha);
+            case 0:
+                return "Frames";
+            case 1:
+                return "Focus + Skins";
+            case 2:
+                return "Effects";
+            case 3:
+                return "Live chrome";
+            default:
+                return "Menu bank";
         }
     }
 
-    private void renderMenuBank(GuiGraphics g, EscRect panel, float alpha) {
+    @Override
+    protected void renderPage(EscGraphics g, EscRect panel, float alpha) {
+        EscTypography.draw(g, font, pageLabel().toUpperCase() + " — click Page to cycle",
+            panel.x() + 10, panel.y() + 10, style, EscTypeRole.META, panel.width() - 20, alpha);
+        switch (page) {
+            case 0:
+                renderFrames(g, panel, alpha);
+                break;
+            case 1:
+                renderFocusSkins(g, panel, alpha);
+                break;
+            case 2:
+                renderEffects(g, panel, alpha);
+                break;
+            case 3:
+                renderLive(g, panel, alpha);
+                break;
+            default:
+                renderMenuBank(g, panel, alpha);
+                break;
+        }
+    }
+
+    private void renderMenuBank(EscGraphics g, EscRect panel, float alpha) {
         EscTypography.draw(g, font, "Menu Sound bank — audition 1–20, bind later via EscUiCueMap",
             panel.x() + 10, panel.y() + 30, style, EscTypeRole.BODY, panel.width() - 20, alpha);
         EscTypography.draw(g, font, "Now previewing: MENU SOUND " + menuPreview,
@@ -118,7 +133,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderFrames(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderFrames(EscGraphics g, EscRect panel, float alpha) {
         EscFrameStyle[] frames = EscFrameStyle.values();
         int cols = Math.min(3, frames.length);
         int gap = 8;
@@ -148,20 +163,27 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderFocusSkins(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderFocusSkins(EscGraphics g, EscRect panel, float alpha) {
         float[] focuses = {0.15f, 0.45f, 0.75f, 1f};
         String[] labels = {"MUTED", "IDLE", "NEAR", "FOCUS"};
         int cardW = Math.min(150, (panel.width() - 40) / 4);
         int y = panel.y() + 30;
         for (int i = 0; i < focuses.length; i++) {
             EscRect card = new EscRect(panel.x() + 10 + i * (cardW + 8), y, cardW, 72);
+            uk.co.extraspecialstudio.esh.api.EshSection sectionIcon;
+            switch (i) {
+                case 0:
+                    sectionIcon = uk.co.extraspecialstudio.esh.api.EshSection.ESS;
+                    break;
+                case 1:
+                    sectionIcon = uk.co.extraspecialstudio.esh.api.EshSection.UTILITY;
+                    break;
+                default:
+                    sectionIcon = uk.co.extraspecialstudio.esh.api.EshSection.MODS;
+                    break;
+            }
             EscCard.renderIdentity(g, font, card, style, labels[i], "focus " + focuses[i], String.valueOf(i + 1),
-                focuses[i], EshSectionIcons.forSection(
-                    switch (i) {
-                        case 0 -> uk.co.extraspecialstudio.esh.api.EshSection.ESS;
-                        case 1 -> uk.co.extraspecialstudio.esh.api.EshSection.UTILITY;
-                        default -> uk.co.extraspecialstudio.esh.api.EshSection.MODS;
-                    }));
+                focuses[i], EshSectionIcons.forSection(sectionIcon));
         }
 
         EscComponentSkin[] skins = EscComponentSkin.values();
@@ -177,7 +199,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderEffects(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderEffects(EscGraphics g, EscRect panel, float alpha) {
         EscEffectPreset[] presets = EscEffectPreset.values();
         int cols = 3;
         int gap = 8;
@@ -200,7 +222,7 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
         }
     }
 
-    private void renderLive(GuiGraphics g, EscRect panel, float alpha) {
+    private void renderLive(EscGraphics g, EscRect panel, float alpha) {
         EscTypography.draw(g, font, "Footer / buttons use EscChromeButton · panel CRT from active theme",
             panel.x() + 10, panel.y() + 30, style, EscTypeRole.BODY, panel.width() - 20, alpha);
 

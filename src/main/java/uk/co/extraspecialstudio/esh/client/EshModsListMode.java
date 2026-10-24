@@ -9,11 +9,16 @@ public enum EshModsListMode {
     BY_GROUP;
 
     public String label() {
-        return switch (this) {
-            case BY_AUTHOR -> "Filter: Author";
-            case BY_TITLE -> "Filter: Title";
-            case BY_GROUP -> "Filter: Group";
-        };
+        switch (this) {
+            case BY_AUTHOR:
+                return "Filter: Author";
+            case BY_TITLE:
+                return "Filter: Title";
+            case BY_GROUP:
+                return "Filter: Group";
+            default:
+                return name();
+        }
     }
 
     public EshModsListMode next() {

@@ -1,8 +1,8 @@
 package uk.co.extraspecialstudio.esh.integration;
 
-import com.mojang.logging.LogUtils;
-import net.minecraft.client.gui.screens.Screen;
-import org.slf4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import net.minecraft.client.gui.screen.Screen;
+import org.apache.logging.log4j.Logger;
 import uk.co.extraspecialstudio.esh.api.EshApi;
 import uk.co.extraspecialstudio.esh.api.EshSection;
 import uk.co.extraspecialstudio.esh.api.EshWindowSpec;
@@ -15,7 +15,7 @@ import java.lang.reflect.Method;
  * ESH does not compile against ESG screen classes.
  */
 public final class EsgHubBridge {
-    private static final Logger LOGGER = LogUtils.getLogger();
+    private static final Logger LOGGER = LogManager.getLogger();
     private static final String ESG_MOD_ID = "extraspecialgui";
     private static final String ESG_SCREENS = "uk.co.extraspecialstudio.esg.EsgScreens";
 
