@@ -1,7 +1,6 @@
 package uk.co.extraspecialstudio.esh;
 
 import com.mojang.logging.LogUtils;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
@@ -28,7 +27,7 @@ public final class EshMod {
 
     public EshMod(IEventBus modBus, ModContainer container) {
         container.registerConfig(ModConfig.Type.CLIENT, EshClientConfig.SPEC);
-        if (FMLEnvironment.dist == Dist.CLIENT) {
+        if (FMLEnvironment.getDist().isClient()) {
             EshClientEvents.register(modBus);
             EssDocsWindows.registerBuiltins();
             EshJsonWindowLoader.loadFromConfig();

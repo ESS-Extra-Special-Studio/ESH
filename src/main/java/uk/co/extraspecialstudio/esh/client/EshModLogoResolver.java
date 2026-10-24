@@ -10,8 +10,6 @@ import net.neoforged.neoforgespi.language.IModInfo;
 import net.neoforged.neoforgespi.locating.IModFile;
 
 import java.io.ByteArrayInputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
@@ -81,7 +79,7 @@ public final class EshModLogoResolver {
             return;
         }
         // Defer past the current frame so first paint stays light.
-        mc.tell(() -> {
+        mc.schedule(() -> {
             try {
                 Optional<ResourceLocation> packHit = lookupPackTextures(modId);
                 if (packHit.isPresent()) {
@@ -175,13 +173,12 @@ public final class EshModLogoResolver {
                 }
                 String normalized = logoFile.replace('\\', '/');
                 IModFile modFile = info.getOwningFile().getFile();
-                String[] parts = normalized.split("/");
-                Path path = modFile.findResource(parts);
-                if (path == null || !Files.exists(path)) {
-                    return null;
-                }
+                String relative = normalized.startsWith("/") ? normalized.substring(1) : normalized;
                 try {
-                    return Files.readAllBytes(path);
+                    if (!modFile.getContents().containsFile(relative)) {
+                        return null;
+                    }
+                    return modFile.getContents().readFile(relative);
                 } catch (Exception e) {
                     return null;
                 }
@@ -198,7 +195,7 @@ public final class EshModLogoResolver {
         }
         try {
             NativeImage image = NativeImage.read(new ByteArrayInputStream(bytes));
-            DynamicTexture texture = new DynamicTexture(image);
+            DynamicTexture texture = new DynamicTexture(() -> "esh_logo_" + modId.toLowerCase(Locale.ROOT), image);
             ResourceLocation id = ResourceLocation.fromNamespaceAndPath(
                 "extraspecialhub", "dynamic_mod_logo/" + modId.toLowerCase(Locale.ROOT)
             );

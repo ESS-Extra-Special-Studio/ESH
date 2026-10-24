@@ -2,6 +2,7 @@ package uk.co.extraspecialstudio.esh.client;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSounds;
 import uk.co.extraspecialstudio.extraspecial.esc.theme.EscComponentSkin;
@@ -221,7 +222,10 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (page == 4 && button == 0 && panelBounds.contains(mouseX, mouseY)) {
             int cols = 10;
             int gap = 4;
@@ -246,6 +250,6 @@ public final class EshEscShowcaseScreen extends EshEscPageScreen {
                 }
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubled);
     }
 }
