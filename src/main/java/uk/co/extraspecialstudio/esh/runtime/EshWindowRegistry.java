@@ -8,7 +8,7 @@ import uk.co.extraspecialstudio.esh.client.EshModLogoResolver;
 import uk.co.extraspecialstudio.esl.registry.EslRegistry;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.layout.EscHubGroup;
 import uk.co.extraspecialstudio.extraspecial.esc.ui.layout.EscHubLeaf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -24,10 +24,10 @@ import java.util.TreeMap;
 public final class EshWindowRegistry {
     private static final EshWindowRegistry INSTANCE = new EshWindowRegistry();
 
-    private static final ResourceLocation ESS_BADGE =
-        ResourceLocation.fromNamespaceAndPath("extraspecialhub", "textures/gui/ess_badge.png");
-    private static final ResourceLocation ESG_BADGE =
-        ResourceLocation.fromNamespaceAndPath("extraspecialhub", "textures/gui/esg_badge.png");
+    private static final Identifier ESS_BADGE =
+        Identifier.fromNamespaceAndPath("extraspecialhub", "textures/gui/ess_badge.png");
+    private static final Identifier ESG_BADGE =
+        Identifier.fromNamespaceAndPath("extraspecialhub", "textures/gui/esg_badge.png");
 
     private final EslRegistry<EshWindowSpec> windows = new EslRegistry<>();
 
@@ -139,7 +139,7 @@ public final class EshWindowRegistry {
             List<EshWindowSpec> leaves = new ArrayList<>(e.getValue());
             leaves.sort(Comparator.comparing(s -> s.title().getString(), String.CASE_INSENSITIVE_ORDER));
             // Author rows: studio → ESS badge; else first leaf groupIcon; else first-leaf inherit.
-            ResourceLocation groupIcon = isStudioAuthor(e.getKey())
+            Identifier groupIcon = isStudioAuthor(e.getKey())
                 ? ESS_BADGE
                 : firstGroupIcon(leaves);
             groups.add(new EscHubGroup(
@@ -153,8 +153,8 @@ public final class EshWindowRegistry {
     }
 
     /** Folder badge for ESS stack groups — leaves themselves stay icon-less (tree branches). */
-    private static ResourceLocation essFolderIcon(String groupId, List<EshWindowSpec> leaves) {
-        ResourceLocation explicit = firstGroupIcon(leaves);
+    private static Identifier essFolderIcon(String groupId, List<EshWindowSpec> leaves) {
+        Identifier explicit = firstGroupIcon(leaves);
         if (explicit != null) {
             return explicit;
         }
@@ -168,12 +168,12 @@ public final class EshWindowRegistry {
         };
     }
 
-    private static ResourceLocation esgFolderIcon() {
-        ResourceLocation live = EshModLogoResolver.resolveOrNull("extraspecialgui");
+    private static Identifier esgFolderIcon() {
+        Identifier live = EshModLogoResolver.resolveOrNull("extraspecialgui");
         return live != null ? live : ESG_BADGE;
     }
 
-    private static ResourceLocation firstGroupIcon(List<EshWindowSpec> leaves) {
+    private static Identifier firstGroupIcon(List<EshWindowSpec> leaves) {
         for (EshWindowSpec s : leaves) {
             if (s.groupIcon() != null) {
                 return s.groupIcon();
@@ -235,7 +235,7 @@ public final class EshWindowRegistry {
     private static List<EscHubLeaf> toLeaves(List<EshWindowSpec> specs, boolean treeNav) {
         List<EscHubLeaf> leaves = new ArrayList<>();
         for (EshWindowSpec s : specs) {
-            ResourceLocation icon = treeNav
+            Identifier icon = treeNav
                 ? null
                 : (s.icon() != null ? s.icon() : EshModLogoResolver.resolve(s.modId()));
             leaves.add(new EscHubLeaf(

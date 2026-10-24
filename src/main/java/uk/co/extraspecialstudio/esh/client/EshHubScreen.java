@@ -1,8 +1,11 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import com.mojang.blaze3d.platform.InputConstants;
 import uk.co.extraspecialstudio.esh.api.EshSection;
 import uk.co.extraspecialstudio.esh.api.EshWindowSpec;
@@ -186,9 +189,8 @@ public final class EshHubScreen extends EscScreen {
             footer.add(new FooterBtn("Theme: Pack locked", b -> {
                 EscSound.play(EscUiCue.BACK);
                 if (minecraft != null && minecraft.player != null) {
-                    minecraft.player.displayClientMessage(
-                        EscText.literal("Pack/server theme override is locked — colours are not personal on this world."),
-                        true);
+                    minecraft.player.sendOverlayMessage(
+                        EscText.literal("Pack/server theme override is locked — colours are not personal on this world."));
                 }
             }, null));
         }
@@ -374,7 +376,7 @@ public final class EshHubScreen extends EscScreen {
                 : leaf.recommendHint();
             hubCtx.setHeaderTips(List.of(hint, "This badge stays until the mod is installed."));
             if (minecraft != null && minecraft.player != null) {
-                minecraft.player.displayClientMessage(net.minecraft.network.chat.Component.literal(hint), true);
+                minecraft.player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(hint));
             }
             return;
         }
@@ -388,7 +390,7 @@ public final class EshHubScreen extends EscScreen {
                 : spec.recommendHint();
             hubCtx.setHeaderTips(List.of(hint, "This badge stays until the mod is installed."));
             if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(net.minecraft.network.chat.Component.literal(hint), true);
+                minecraft.player.sendOverlayMessage(net.minecraft.network.chat.Component.literal(hint));
             }
             return;
         }
@@ -451,8 +453,8 @@ public final class EshHubScreen extends EscScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        extractBackground(graphics, mouseX, mouseY, partialTick);
         setStyle(EscUiStyle.active(EshMod.MOD_ID));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, style.theme());
@@ -472,11 +474,14 @@ public final class EshHubScreen extends EscScreen {
         int lip = (0xAA << 24) | (style.accentColor() & 0xFFFFFF);
         graphics.fill(footerBounds.x(), footerBounds.y(), footerBounds.right(), footerBounds.y() + 2, lip);
         EscCrtLayer.render(graphics, content, style.theme());
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubled) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         // Right-click colour footer buttons = cycle presets (left-click opens picker).
         if (button == 1) {
             for (int i = 0; i < footerButtons.size() && i < footerDefs.size(); i++) {
@@ -501,7 +506,7 @@ public final class EshHubScreen extends EscScreen {
                 return true;
             }
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubled);
     }
 
     @Override
@@ -514,15 +519,18 @@ public final class EshHubScreen extends EscScreen {
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
+        int scanCode = event.scancode();
+        int modifiers = event.modifiers();
         if (searchBox != null && searchBox.isFocused()) {
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
         if (footerFocus >= 0) {
             if (keyPressedFooter(keyCode)) {
                 return true;
             }
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
         if (layout != null && hubCtx != null) {
             int before = hubCtx.sectionIndex();
@@ -545,7 +553,7 @@ public final class EshHubScreen extends EscScreen {
                 return true;
             }
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     private boolean keyPressedFooter(int keyCode) {
@@ -569,7 +577,11 @@ public final class EshHubScreen extends EscScreen {
         if (keyCode == InputConstants.KEY_RETURN || keyCode == InputConstants.KEY_SPACE) {
             if (footerFocus >= 0 && footerFocus < footerButtons.size()) {
                 Button b = footerButtons.get(footerFocus);
-                return b.mouseClicked(b.getX() + b.getWidth() * 0.5, b.getY() + b.getHeight() * 0.5, 0);
+                return b.mouseClicked(new MouseButtonEvent(
+                    b.getX() + b.getWidth() * 0.5,
+                    b.getY() + b.getHeight() * 0.5,
+                    new MouseButtonInfo(0, 0)
+                ), false);
             }
             return true;
         }

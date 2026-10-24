@@ -2,7 +2,7 @@ package uk.co.extraspecialstudio.esh.api;
 
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Objects;
 import java.util.function.Function;
@@ -21,8 +21,8 @@ public final class EshWindowSpec {
     private final String groupTitle;
     private final String subtitle;
     private final int sortOrder;
-    private final ResourceLocation icon;
-    private final ResourceLocation groupIcon;
+    private final Identifier icon;
+    private final Identifier groupIcon;
     private final boolean enabled;
     private final String recommendHint;
 
@@ -87,11 +87,11 @@ public final class EshWindowSpec {
         return sortOrder;
     }
 
-    public ResourceLocation icon() {
+    public Identifier icon() {
         return icon;
     }
 
-    public ResourceLocation groupIcon() {
+    public Identifier groupIcon() {
         return groupIcon;
     }
 
@@ -122,8 +122,8 @@ public final class EshWindowSpec {
         private String groupTitle = "";
         private String subtitle = "";
         private int sortOrder = 0;
-        private ResourceLocation icon;
-        private ResourceLocation groupIcon;
+        private Identifier icon;
+        private Identifier groupIcon;
         private boolean enabled = true;
         private String recommendHint = "";
 
@@ -164,12 +164,12 @@ public final class EshWindowSpec {
             return this;
         }
 
-        public Builder icon(ResourceLocation icon) {
+        public Builder icon(Identifier icon) {
             this.icon = icon;
             return this;
         }
 
-        public Builder groupIcon(ResourceLocation groupIcon) {
+        public Builder groupIcon(Identifier groupIcon) {
             this.groupIcon = groupIcon;
             return this;
         }

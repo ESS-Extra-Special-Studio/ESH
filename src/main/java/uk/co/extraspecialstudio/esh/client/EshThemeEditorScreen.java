@@ -1,6 +1,6 @@
 package uk.co.extraspecialstudio.esh.client;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscSound;
 import uk.co.extraspecialstudio.extraspecial.esc.sound.EscUiCue;
@@ -104,8 +104,8 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
                 row1[5], b -> {
                     EscSound.play(EscUiCue.BACK);
                     if (minecraft != null && minecraft.player != null) {
-                        minecraft.player.displayClientMessage(
-                            EscText.literal("Pack/server theme is locked — Apply is disabled."), true);
+                        minecraft.player.sendOverlayMessage(
+                            EscText.literal("Pack/server theme is locked — Apply is disabled."));
                     }
                 });
         }
@@ -117,7 +117,7 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
     }
 
     @Override
-    protected void renderPage(GuiGraphics g, EscRect panel, float alpha) {
+    protected void renderPage(GuiGraphicsExtractor g, EscRect panel, float alpha) {
         // Unused — full render overridden below.
     }
 
@@ -206,8 +206,8 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
         if (!EscThemeManager.canPlayerCustomize()) {
             EscSound.play(EscUiCue.BACK);
             if (minecraft != null && minecraft.player != null) {
-                minecraft.player.displayClientMessage(
-                    EscText.literal("Pack/server theme is locked — Apply is disabled."), true);
+                minecraft.player.sendOverlayMessage(
+                    EscText.literal("Pack/server theme is locked — Apply is disabled."));
             }
             return;
         }
@@ -217,10 +217,10 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
         EscThemeManager.registerApplicationTheme("extraspecialhub", working);
         List<String> issues = EscThemeValidator.validate(working);
         if (!issues.isEmpty() && minecraft != null && minecraft.player != null) {
-            minecraft.player.displayClientMessage(EscText.literal("Theme notes: " + issues.get(0)), true);
+            minecraft.player.sendOverlayMessage(EscText.literal("Theme notes: " + issues.get(0)));
         } else if (minecraft != null && minecraft.player != null) {
-            minecraft.player.displayClientMessage(
-                EscText.literal("Applied ESH theme on this PC (client only)"), true);
+            minecraft.player.sendOverlayMessage(
+                EscText.literal("Applied ESH theme on this PC (client only)"));
         }
         EscThemeConfigs.PLAYER_CUSTOM.set(true);
         rebuild();
@@ -242,7 +242,7 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
         if (minecraft != null) {
             minecraft.keyboardHandler.setClipboard(export);
             if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(EscText.literal("Theme export copied"), true);
+                minecraft.player.sendOverlayMessage(EscText.literal("Theme export copied"));
             }
         }
     }
@@ -257,8 +257,8 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
     }
 
     @Override
-    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
+    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
+        extractBackground(graphics, mouseX, mouseY, partialTick);
         setStyle(EscUiStyle.fromTheme(working));
         EscRect content = contentRect();
         EscBackground.render(graphics, content, working);
@@ -296,6 +296,6 @@ public final class EshThemeEditorScreen extends EshEscPageScreen {
             y += font.lineHeight + 2;
         }
         EscCrtLayer.render(graphics, content, working);
-        super.render(graphics, mouseX, mouseY, partialTick);
+        super.extractRenderState(graphics, mouseX, mouseY, partialTick);
     }
 }
